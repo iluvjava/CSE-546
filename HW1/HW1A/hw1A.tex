@@ -103,10 +103,30 @@
             The numerical results for 5 observations has been shown in \hyperref[A.1.a]{A.1.a} and \hyperref[A.1.b]{A.1.b} respectively. 
             
     \subsection*{(A.2)}
+        \hspace{1.1em}
         \textbf{Objective: } Find the MLE for the uniform distribution on $[o, \theta]$, where $\theta$ is the value we want to estimate.
-         
-
-
+        \par
+        Suppose that an observations has been made: $x_1, x_2, \cdots x_N$, and we assume that they are idd, and we want to find the likelihood of such an observation is generated using the Uniform distribution. And this will be given by the expression: 
+        \begin{equation*}\tag{A.2.1}\label{eqn:A.2.1}
+            \prod_{n = 1}^{N} 
+            \underbrace{
+            \mathbb{P}\left(X = x_n\right)}_{\frac{1}{\theta}\mathbf{1}\{0 \le x_n \le \theta\}}
+        \end{equation*}
+        \par
+        Observe that, if any of the observation is beyond the range $[0, \theta]$, we will have zero likelihood, so let's assume that $\theta \le \max_{1\le i \le N}(x_i)$, then we will have this expression for the likelihood: 
+        \begin{equation*}\tag{A.2.2}\label{eqn:A.2.2}
+            \prod_{n = 1}^{N} 
+            \frac{1}{\theta} = \frac{1}{\theta^N}
+        \end{equation*}
+        And taking the log on that we have: 
+        \begin{equation*}\tag{A.2.3}\label{eqn:A.2.3}
+            \log\left(\frac{1}{\theta^N}\right) = -N\log(\theta)
+        \end{equation*}
+        \par
+        Observe that that function is monotonically decreasing as the value of $\theta$ get larger and larger, therefore, to maximize the likelihood, we need the value of $\theta$ to be as small as possible, and the smallest possible such $\theta$ that is not giving us zero likelihood is: $\max_{1\le i \le N}(x_i)$, therefore, best estimate is given by: 
+        $$
+            \theta^+ =\max_{1\le i \le N}(x_i)
+        $$
 
 \section*{Overfitting}
 
