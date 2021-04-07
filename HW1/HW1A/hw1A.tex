@@ -29,13 +29,82 @@
 
 \section*{Maximum Likelihood Estimator(MLE)}
     \subsection*{(A.1)}
-        \subsubsection*{(A.1.a)}
+        \subsubsection*{(A.1.a)}\label{A.1.a}
             \hspace{1.1em}
-            \textbf{Objective}: Find the expression for the maximum=likelihood estimate for the parameter $\lambda$ for the poisson distribution, interns of the goal count. 
-             
-        \subsubsection*{(A.1.b)}
+            \textbf{Objective}: Find the expression for the maximum=likelihood estimate for the parameter $\lambda$ for the poisson distribution, interns of the goal count. Assume idd rvs. 
+            \par
+            Here we will assume that observations obtained takes the form $x_1, x_2, \cdots x_N$, and then we derive the best estimator for $\lambda$ in this much general context. 
+            \par
+            I will shut up and just show you the math: 
+            \begin{align*}\tag{A.1.a.1}\label{eqn:A.1.a.1}
+                & 
+                \prod_{n = 1}^{N} 
+                \text{Poi}(x_n|\lambda)
+                \\
+                &
+                \sum_{n = 1}^{N}
+                \log\left(
+                    \text{Poi}(x_n|\lambda)
+                \right)
+                \\
+                &
+                \sum_{n = 1}^{N}
+                \left(
+                    -\lambda + x_n\ln(\lambda) + \log(x_n!)
+                \right)
+            \end{align*}
+            Notice that, only some of the terms are relevant to the parameter $\lambda$, therefore, the optimization problem we are solving is: 
+            \begin{equation*}\tag{A.1.a.2}\label{eqn:A.1.a.2}
+                \lambda^+ = 
+                \underset{\lambda}{\text{argmax}}
+                \left\lbrace
+                    -N\lambda
+                    +  
+                    \ln(\lambda)
+                    \sum_{i = 1}^{N}
+                        \left(
+                            x_n
+                        \right)
+                \right\rbrace
+            \end{equation*}
+            To solve it, we just take the derivative, set it to zero and then solve for $\lambda$, because this function is a function that has a single local maximum. 
+            \begin{align*}\tag{A.1.a.3}\label{eqn:A.1.a.3}
+                \partial_\lambda \left[
+                -N\lambda
+                +  
+                \ln(\lambda)
+                \sum_{i = 1}^{N}
+                    \left(
+                        x_n
+                    \right)
+                \right] =& 0
+                \\
+                -N + \frac{\sum_{n = 1}^{N}x_n}{
+                \lambda^+
+                } =& 0 
+                \\
+                \implies
+                \lambda^+ =& \frac{\sum_{n = 1}^{N}x_n}{N}
+            \end{align*}
+            Therefor, for this particular problem, the best estimator will be the average of all the observation, which is just: 
+            $$
+                \frac{2 + 4 + 6 + 1}{5} = 2.6
+            $$
+            And that is the answer for the question. 
+        \subsubsection*{(A.1.b)}\label{A.1.b}
+            \hspace{1.1em}
+            The derivation of the best estimator in the general context is shown in \hyperref[A.1.a]{A.1.a}. 
+            \par
+            The numerical value for six observations is: 
+            $$
+                \frac{2 + 4 + 6 + 1 + 3}{7} = 2.6666666666\cdots
+            $$
         \subsubsection*{(A.1.c)}
+            The numerical results for 5 observations has been shown in \hyperref[A.1.a]{A.1.a} and \hyperref[A.1.b]{A.1.b} respectively. 
+            
     \subsection*{(A.2)}
+        \textbf{Objective: } Find the MLE for the uniform distribution on $[o, \theta]$, where $\theta$ is the value we want to estimate.
+         
 
 
 
