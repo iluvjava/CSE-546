@@ -427,3 +427,12 @@ com_crashlytics_export_strings.xml
 crashlytics.properties
 crashlytics-build.properties
 fabric.properties
+
+# My approach: 
+
+./**/*.pdf
+./**/*.log
+./**/*.out
+./**/*.fdb_latexmk
+./**/*.synctex.gz
+./**/*.aux
