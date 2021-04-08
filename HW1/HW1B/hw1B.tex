@@ -70,8 +70,86 @@
         \end{align*}
         (2): This is true because, there is a group of indices $i$ that is going to fall under the $j$ th groups, and those indices are in the range of $i \in \mathbb{N}\cap [(j - 1)m - 1, jm]$ and for all such index $i$, the value of $\bar{f}^{\left\lceil\frac{i}{m}\right\rceil}$ is going to be the same. Because we rounded the fraction $\frac{i}{m}$.
     \subsubsection*{B.1.c}
-        
+        \hspace{1.1em}
+        Let's dive into the math starting with the given definition of average variance in the problem statement, which is: 
+        \par
+        \begin{align*}\tag{B.1.c.1}\label{eqn:B.1.c.1}
+            & \mathbb{E}\left[
+                \frac{1}{n}
+                \sum_{i = 1}^{n}\left(
+                    \hat{f}_m(x_i) - \mathbb{E}\left[\hat{f}_m(x_i)\right]
+                \right)^2
+            \right] 
+            \\=& 
+            \frac{1}{n}
+            \sum_{i = 1}^{n}
+            \mathbb{E}\left[
+                \left(
+                    \hat{f}_m(x_i) - \mathbb{E}\left[\hat{f}_m(x_i)\right]
+                \right)^2
+            \right]
+            \\
+            =&
+            \frac{1}{n}\sum_{j = 1}^{n/m}\sum_{i = (j - 1)m + 1}^{mj}
+            \mathbb{E}\left[
+                \left(
+                    \hat{f}_m(x_i) - \mathbb{E}\left[\hat{f}_m(x_i)\right]
+                \right)^2
+            \right]
+        \end{align*}
+        Let's pause for a moment and think about the fact that, the outter sum is summing over each of the partition. And we know that for all $i\in \mathbb{N}\cap[(j - 1)m + 1, jm]$, which is just all the indices for the sample that are presented in the $j$ th partition, the value of $\hat{f}_m(x_i)$ and the value of $\mathbb{E}\left[\hat{f}_m(x_i)\right]$ is going to be the same and they are: $c_j$ and $\bar{f}^{(j)}$. 
+        \begin{align*}\tag{B.1.c.2}\label{eqn:B.1.c.2}
+            \frac{1}{n}\sum_{j = 1}^{n/m}\sum_{i = (j - 1)m + 1}^{mj}
+            \mathbb{E}\left[
+                \left(
+                    \hat{f}_m(x_i) - \mathbb{E}\left[\hat{f}_m(x_i)\right]
+                \right)^2
+            \right] 
+            = &
+            \frac{1}{n}\sum_{j = 1}^{n/m}\sum_{i = (j - 1)m + 1}^{mj}
+            \mathbb{E}\left[
+                \left(
+                    c_j - \bar{f}^{(j)}
+                \right)^2
+            \right] 
+            \\
+            =& 
+            \frac{1}{n}\sum_{j = 1}^{n/m}
+                m\mathbb{E}\left[
+                    (c_j - \bar{f}^{(j)})^2
+                \right] 
+        \end{align*}
+        And hence, we have proven the first equality stated in the problem. Next, let's observe the fact that $c_j$ is the average of all the samples over the $j$ th partition which is given as $\frac{1}{m}\sum_{i = (j - 1)m + 1}^{jm}y_i$ and in this case $y_i = f(x_i) + \epsilon$, but at the same time $\bar{f}^{j} = \frac{1}{m}\sum_{i = (j - 1)m + 1}^{mj}f(x_i)$ and hence we know that: $c_j - \bar{f}^{(j)} = \frac{1}{m}\sum_{i = (j - 1)m + 1}^{jm}\epsilon_i$, which is conveniently giving us the result that: 
+        \begin{align*}\tag{B.1.c.3}\label{eqn:B.1.c.3}
+            \frac{1}{n}\sum_{j = 1}^{n/m}
+            m\mathbb{E}\left[
+                (c_j - \bar{f}^{(j)})^2
+            \right]
+            &=
+            \frac{1}{n}\frac{n}{m}m \mathbb{E}\left[
+                \left(
+                    \frac{1}{m}\sum_{i = (j - 1)m + 1}^{jm}\epsilon_i
+                \right)^2
+            \right]
+            \\
+            &= \mathbb{E}\left[
+                \left(
+                    \frac{1}{m}\sum_{i = 1}^{m}\epsilon_i
+                \right)^2
+            \right]
+        \end{align*}
+        Let's pause for a moment and remember that $\epsilon \sim \mathcal{N}(0, \sigma^2)$, and in this case, we take the average for $m$ of them, hence, $\frac{1}{m}\sum_{i = `'}^{m}\epsilon_i\sim \mathcal{N}(0, \sigma^2/m)$. 
+        \par
+        However, we also need to note that for any Gaussian Random variable say: $X\sim \mathcal{N}(0, \sigma^2)$, the variance $\sigma^2 = \mathbb{E}\left[X^2\right] - \mathbb{E}\left[X\right]^2$(The mean is zero!) which implies that $\mathbb{E}\left[X^2\right] = \sigma^2$. Hence, combining this fact and the previous statement (Basically $X = \sum_{i = 1}^{m}\epsilon_i$), we know that: 
+        \begin{equation*}\tag{B.1.c.4}\label{eqn:B.1.c.4}
+            \mathbb{E}\left[
+                \left(
+                    \frac{1}{m}\sum_{i = 1}^{m}\epsilon_i
+                \right)^2
+            \right] = \frac{\sigma^2}{m}
+        \end{equation*}
     \subsubsection*{B.1.d}
+        
     \subsubsection*{B.1.e}
-
+        
 \end{document}
