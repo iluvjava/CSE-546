@@ -1,0 +1,77 @@
+\documentclass[]{article}
+\usepackage{amsmath}\usepackage{amsfonts}
+\usepackage[margin=1in,footskip=0.25in]{geometry}
+\usepackage{mathtools}
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,
+    urlcolor=cyan,
+}
+\usepackage[final]{graphicx}
+\usepackage{listings}
+\usepackage{courier}
+\lstset{basicstyle=\footnotesize\ttfamily,breaklines=true}
+
+% \usepackage{wrapfig}
+\graphicspath{{.}}
+
+\begin{document}
+\begin{center}
+    CSE 546 SPRING 2021: HW1 
+\end{center}
+\begin{center}
+    Name: Honda Li
+\end{center}
+
+\section*{Bias-Variance tradeoff}
+    \subsubsection*{B.1.a}
+        \hspace{1.1em}
+        When $m$ is relative small (Relative to the observed samples), the variance will be huge, and when the value of $m$ is huge, then the bias will be huge. 
+        \par
+        When $m = 1$, the function $\hat{f}(x)$ got decay into a k-nn method that checks of the closest labor. The model is literally looking for the $\hat{y}$ by looking for $x_i$ that is closest to the test sample. This will produce a great amount of variance, and the more sample there is, the more variance we have for the estimated model. 
+        \par
+        When $m = n$, we have $\hat{f}(x)$ returning the average of the samples, regardless of what the input is. This means that as we have more and more sample, the average will converge. Meaning all estimated models converge to one model. But the bias is not reduced because some ground truths might not be a horizontal line. 
+    \subsubsection*{B.1.b}
+        \hspace{1.1em}
+        We defined $\bar{f}^{(j)}=\frac{1}{m}\sum_{i = (j - 1)m + 1}^{jm}f\left(x_i\right)$, which is just the average of the ground truth function $f(x)$ over the $j$ th partition. 
+        \par
+        \textbf{Objective: } figure out the Bias-squared as: $\frac{1}{n}\sum_{i = 1}^{n}\left(\mathbb{E}\left[\hat{f}_m(x_i)\right] - f(x_i)\right)^2$. 
+        \par
+        Let's start by considering the quantity: $\mathbb{E}\left[\hat{f}_m(x_i)\right]$. 
+        \begin{align*}\tag{B.1.b.1}\label{eqn:B.1.b.1}
+            \mathbb{E}\left[\hat{f}_m(x_i)\right] \underset{(1)}{=}&
+            \mathbb{E}\left[c_{\left\lceil\frac{i}{m}\right\rceil}\right]
+            \\
+            =& 
+            \frac{1}{m}\sum_{i=(j - 1)m + 1}^{jm}f(x_i) \quad \text{where } j = 
+            \left\lceil\frac{i}{m}\right\rceil
+            \\
+            =&
+            \hat{f}^{(\left\lceil\frac{i}{m}\right\rceil) }
+        \end{align*}
+        (1): Because, for any $x_i$, it will only fall onto one of the partition, and the partition is $\left\lceil \frac{i}{m}\right\rceil$. This true because $x_i = \frac{i}{n}$ and $i\in\mathbb{N}$. So the index of the sample tells us which interval it's falling onto and what the value of $j$ is going to be for that sample $x_i$. Hence, it set all other $c_j$ to zeroes, except when $j = \left\lceil\frac{i}{m}\right\rceil$
+        \\[1em]
+        Now, we consider the Bias-squared in this way: 
+        \begin{align*}\tag{B.1.b.2}\label{eqn:B.1.b.2}
+            \frac{1}{n}\sum_{i = 1}^{n}\left(\mathbb{E}\left[\hat{f}_m(x_i)\right] - f(x_i)\right)^2
+            =&
+            \frac{1}{n}\sum_{i = 1}^{n}\left(
+                \bar{f}^{\left\lceil\frac{i}{m}\right\rceil}
+                -
+                f(x_i)
+            \right)^2
+            \\
+            \underset{(2)}{=}&
+            \frac{1}{n}\sum_{j = 1}^{n/m}\sum_{i = (j - 1)m - 1}^{jm}\left(
+                \bar{f}^{(j)} - f(x_i)
+            \right)^2
+        \end{align*}
+        (2): This is true because, there is a group of indices $i$ that is going to fall under the $j$ th groups, and those indices are in the range of $i \in \mathbb{N}\cap [(j - 1)m - 1, jm]$ and for all such index $i$, the value of $\bar{f}^{\left\lceil\frac{i}{m}\right\rceil}$ is going to be the same. Because we rounded the fraction $\frac{i}{m}$.
+    \subsubsection*{B.1.c}
+        
+    \subsubsection*{B.1.d}
+    \subsubsection*{B.1.e}
+
+\end{document}

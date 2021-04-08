@@ -28,13 +28,36 @@
 \section*{Short Answer and ``True or False'' Conceptual Questions}
     \subsection*{A.0}
         \subsubsection*{(A.0.a)}
+            \hspace{1.1em}
+            The bias and variance is similar to the concepts of precision and accuracy in Experimental Physics. Under the context of machine learning, Bias refers to part of the learning errors caused by a model being too simple, in a way that it just cant represent the joint probability density function with its simplicity. 
+            \par
+            The variance refers to the variance of the random variable $\hat{f}(x)$, which depends on the samples we observed. 
+            \par
+            Bias-variance trade off relates 2 types of learning errors (Bias, Variance) with the model complexity. 
         \subsubsection*{(A.0.b)}
+            \hspace{1.1em}
+            Usually, higher the model complexity, higher the variance, lower the model complexity, higher the bias. 
         \subsubsection*{(A.0.c)}
+            \hspace{1.1em}
+            False. The bias decreases. Because the bias is: $\mathbb{E}\left[
+                \left(
+                f(x) - \mathbb{E}\left[\hat{f}(x)\right]
+                \right)^2
+            \right]$. The number of sample seems to be irrelevant to the amount of bias we have for the model. 
         \subsubsection*{(A.0.d)}
+            \hspace{1.1em}
+            True when we fix the model complexity. This is absolutely true when we consider a linear regression. If we take infinitely many data, the best line-fit will converge. 
+            \par
+            This is even more true when we just consider taking the average as a way of making prediction (Which is not a bad way to predict the output given $X = x$), then, this is literally the Central limit theorem, as we have more and more samples, the variance of the sample average gets smaller. 
         \subsubsection*{(A.0.e)}
+
         \subsubsection*{(A.0.f)}
+            \hspace{1.1em}
+            We should use the test set to tune the hyper-parameters for the models. 
         \subsubsection*{(A.0.g)}
-        \subsubsection*{(A.0.h)}
+            \hspace{1.1em}
+            False. It's an underestimate. 
+
 \section*{Maximum Likelihood Estimator(MLE)}
     \subsection*{(A.1)}
         \subsubsection*{(A.1.a)}\label{A.1.a}
@@ -137,8 +160,6 @@
         $$
 
 \section*{Over-fitting}
-    
-\section*{Bias-Variance Tradeoff}
 
 \section*{Polynomial Regression}
 
