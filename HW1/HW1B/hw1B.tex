@@ -140,7 +140,7 @@
         \end{align*}
         Let's pause for a moment and remember that $\epsilon \sim \mathcal{N}(0, \sigma^2)$, and in this case, we take the average for $m$ of them, hence, $\frac{1}{m}\sum_{i = `'}^{m}\epsilon_i\sim \mathcal{N}(0, \sigma^2/m)$. 
         \par
-        However, we also need to note that for any Gaussian Random variable say: $X\sim \mathcal{N}(0, \sigma^2)$, the variance $\sigma^2 = \mathbb{E}\left[X^2\right] - \mathbb{E}\left[X\right]^2$(The mean is zero!) which implies that $\mathbb{E}\left[X^2\right] = \sigma^2$. Hence, combining this fact and the previous statement (Basically $X = \sum_{i = 1}^{m}\epsilon_i$), we know that: 
+        However, we also need to note that for any Gaussian Random variable say: $X\sim \mathcal{N}(0, \sigma^2)$, the variance $\sigma^2 = \mathbb{E}\left[X^2\right] - \mathbb{E}\left[X\right]^2$(The mean is zero!) which implies that $\mathbb{E}\left[X^2\right] = \sigma^2$. Hence, combining this fact and the previous statement (Basically $X = \frac{1}{m}\sum_{i = 1}^{m}\epsilon_i$), we know that: 
         \begin{equation*}\tag{B.1.c.4}\label{eqn:B.1.c.4}
             \mathbb{E}\left[
                 \left(
