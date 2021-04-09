@@ -28,44 +28,37 @@
 \section*{Short Answer and ``True or False'' Conceptual Questions}
     \subsection*{A.0}
         \subsubsection*{(A.0.a)}
-            \hspace{1.1em}
             The bias and variance is similar to the concepts of precision and accuracy in Experimental Physics. Under the context of machine learning, Bias refers to part of the learning errors caused by a model being too simple, in a way that it just cant represent the joint probability density function with its simplicity. 
-            \par
+            \\[1em]
             The variance refers to the variance of the random variable $\hat{f}(x)$, which depends on the samples we observed. 
-            \par
+            \\[1em]
             Bias-variance trade off relates 2 types of learning errors (Bias, Variance) with the model complexity. 
         \subsubsection*{(A.0.b)}
-            \hspace{1.1em}
             Usually, higher the model complexity, higher the variance, lower the model complexity, higher the bias. 
         \subsubsection*{(A.0.c)}
-            \hspace{1.1em}
             False. The bias decreases. Because the bias is: $\mathbb{E}\left[
                 \left(
                 f(x) - \mathbb{E}\left[\hat{f}(x)\right]
                 \right)^2
             \right]$. The number of sample seems to be irrelevant to the amount of bias we have for the model. 
         \subsubsection*{(A.0.d)}
-            \hspace{1.1em}
             True when we fix the model complexity. This is absolutely true when we consider a linear regression. If we take infinitely many data, the best line-fit will converge. 
-            \par
+            \\[1em]
             This is even more true when we just consider taking the average as a way of making prediction (Which is not a bad way to predict the output given $X = x$), then, this is literally the Central limit theorem, as we have more and more samples, the variance of the sample average gets smaller. 
         \subsubsection*{(A.0.e)}
 
         \subsubsection*{(A.0.f)}
-            \hspace{1.1em}
             We should use the test set to tune the hyper-parameters for the models. 
         \subsubsection*{(A.0.g)}
-            \hspace{1.1em}
             False. It's an underestimate. 
 
 \section*{Maximum Likelihood Estimator(MLE)}
     \subsection*{(A.1)}
         \subsubsection*{(A.1.a)}\label{A.1.a}
-            \hspace{1.1em}
             \textbf{Objective}: Find the expression for the maximum=likelihood estimate for the parameter $\lambda$ for the poisson distribution, interns of the goal count. Assume idd rvs. 
-            \par
+            \\[1em]
             Here we will assume that observations obtained takes the form $x_1, x_2, \cdots x_N$, and then we derive the best estimator for $\lambda$ in this much general context. 
-            \par
+            \\[1em]
             I will shut up and just show you the math: 
             \begin{align*}\tag{A.1.a.1}\label{eqn:A.1.a.1}
                 & 
@@ -123,9 +116,8 @@
             $$
             And that is the answer for the question. 
         \subsubsection*{(A.1.b)}\label{A.1.b}
-            \hspace{1.1em}
             The derivation of the best estimator in the general context is shown in \hyperref[A.1.a]{A.1.a}. 
-            \par
+            \\[1em]
             The numerical value for six observations is: 
             $$
                 \frac{2 + 4 + 6 + 1 + 3}{7} = 2.6666666666\cdots
@@ -134,16 +126,16 @@
             The numerical results for 5 observations has been shown in \hyperref[A.1.a]{A.1.a} and \hyperref[A.1.b]{A.1.b} respectively. 
             
     \subsection*{(A.2)}
-        \hspace{1.1em}
+        
         \textbf{Objective: } Find the MLE for the uniform distribution on $[o, \theta]$, where $\theta$ is the value we want to estimate.
-        \par
+        \\[1em]
         Suppose that an observations has been made: $x_1, x_2, \cdots x_N$, and we assume that they are idd, and we want to find the likelihood of such an observation is generated using the Uniform distribution. And this will be given by the expression: 
         \begin{equation*}\tag{A.2.1}\label{eqn:A.2.1}
             \prod_{n = 1}^{N} 
             \underbrace{
             \mathbb{P}\left(X = x_n\right)}_{\frac{1}{\theta}\mathbf{1}\{0 \le x_n \le \theta\}}
         \end{equation*}
-        \par
+        \\[1em]
         Observe that, if any of the observation is beyond the range $[0, \theta]$, we will have zero likelihood, so let's assume that $\theta \le \max_{1\le i \le N}(x_i)$, then we will have this expression for the likelihood: 
         \begin{equation*}\tag{A.2.2}\label{eqn:A.2.2}
             \prod_{n = 1}^{N} 
@@ -153,7 +145,7 @@
         \begin{equation*}\tag{A.2.3}\label{eqn:A.2.3}
             \log\left(\frac{1}{\theta^N}\right) = -N\log(\theta)
         \end{equation*}
-        \par
+        \\[1em]
         Observe that that function is monotonically decreasing as the value of $\theta$ get larger and larger, therefore, to maximize the likelihood, we need the value of $\theta$ to be as small as possible, and the smallest possible such $\theta$ that is not giving us zero likelihood is: $\max_{1\le i \le N}(x_i)$, therefore, best estimate is given by: 
         $$
             \theta^+ =\max_{1\le i \le N}(x_i)
