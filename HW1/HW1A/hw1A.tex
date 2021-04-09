@@ -161,11 +161,41 @@
 
 \section*{Over-fitting}
     \subsection*{A.3}
-        
+        \begin{enumerate}
+        \item[1.] $S = \{(x_i, y_i)\}_{i = 1}^N$ drawn from idd with underlying joint distribution $\mathcal{D}$. 
+        \item[2.] The training set is break into $S_\text{train}, S_\text{test}$, and $S = S_\text{Train} \cup S_\text{Test}$, notice that overlapping is possible. 
+        \item[3.] And the true least square error, given a predictive model $f$ is: $\epsilon(f) = \mathbb{E}\left[(f(x) d - y)^2\right]$. 
+        \end{enumerate}
     \subsubsection*{A.3.a}
-        
+        We want to show that that, the expected bias of the model $f$ over the training set and the test set is the same as expected value of the bias over the distribution $\mathcal{D}$, hence it's unbiased. 
+        \\[1em]
+        Start by considering the expected value of $\epsilon_\text{train}(f)$: 
+        \begin{align*}\tag{A.3.a.1}\label{eqn:A.3.a.1}
+            & \mathbb{E}_{\text{train}}\left[\frac{1}{N_\text{train}}
+            \sum_{(x, y)\in S_\text{train}}^{}\left(
+                f(x) - y
+            \right)^2\right]
+            \\
+            = &
+            \frac{1}{N_\text{train}} 
+            \sum_{(x, y)\in S_\text{train}}^{}
+            \underbrace{
+                \mathbb{E}_{\text{train}}
+                \left[ 
+                \left(
+                    f(x) - y
+                \right)^2\right]
+            }_{\epsilon(f)}
+            \\
+            \hat{\epsilon}(f)
+            = &
+            \hat{\epsilon}_{\text{train}}(f)
+        \end{align*}
+        For each term $f(x) - y$, we assume that it's idd, and therefore, its expected value is going to be the same as if it's drawn from the distribution $\mathcal{D}$, because each sample of the train set is drawn in this way, therefore, we can conclude that $\mathbb{E}\left[(f(x) - y)^2\right]$ is going to give $\epsilon(f)$. 
+        \\[1em]
+        The proof for $\hat{\epsilon}_\text{test}(f)$ is going to be exact same because they are both drawn from the same idd joint distribution: $\mathcal{D}$. And hence we know that the bias estimator for any given model is going to be unbiased. 
     \subsubsection*{A.3.b}
-    
+        $\mathbb{E}_{\text{train}}\left[\hat{\epsilon}_\text{train}(\hat{f})\right]\ne \mathbb{E}\left[\epsilon(\hat{f})\right]$ Consider Linear regression where 2 the sample size is so small ($d - 1$ samples where $d$ is the number of features) that we have a perfect fit model $\hat{f}$ then the bias of the model is going to be zero under the training set, however, the bias over the real distribution is not, because $\mathcal{D}$ could be non-linear and there could be noises, which both will introduce some biased. 
     \subsubsection*{A.3.c}
 
 \section*{Polynomial Regression}
