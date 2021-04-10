@@ -48,9 +48,11 @@
         \subsubsection*{(A.0.e)}
 
         \subsubsection*{(A.0.f)}
-            We should use the test set to tune the hyper-parameters for the models. 
+            We should use the test set to tune the hyper-parameters for the models. This is true because the test set is indicative of true performance of the model. 
+            \\
+            Consider hypertunning the polynomial regression using training set only, where $p$ is the degree of polynomial. Then, for any given sample that is normalized, there is a $p = n$ that where $n$ is the total number of samples and th polynomial will fit perfectly. This is obviously over-fitting. Hence we should hypertune using the test data set. 
         \subsubsection*{(A.0.g)}
-            False. It's an underestimate. 
+            False. It's an underestimate. This is a conclusion from the lecture. 
 
 \section*{Maximum Likelihood Estimator(MLE)}
     \subsection*{(A.1)}
@@ -188,6 +190,79 @@
     \subsubsection*{A.3.b}
         $\mathbb{E}_{\text{train}}\left[\hat{\epsilon}_\text{train}(\hat{f})\right]\ne \mathbb{E}\left[\epsilon(\hat{f})\right]$ Consider Linear regression where 2 the sample size is so small ($d - 1$ samples where $d$ is the number of features) that we have a perfect fit model $\hat{f}$ then the bias of the model is going to be zero under the training set, however, the bias over the real distribution is not, because $\mathcal{D}$ could be non-linear and there could be noises, which both will introduce some biased. 
     \subsubsection*{A.3.c}
+        Some explanations are needed for this question. Consider the following expression: 
+        \begin{equation*}\tag{A.3.b.1}\label{eqn:A.3.b.1}
+            \underbrace{\mathbb{E}_\text{train} 
+            \left[\hat{\epsilon}_\text{train}(\hat{f}_\text{train})\right]}_{\epsilon(\hat{f}_\text{train})}
+            \le
+            \mathbb{E}_{\text{train, test }}\left[
+                \hat{\epsilon}_\text{test}
+                (\hat{f}_\text{train})
+            \right]
+        \end{equation*}
+        This is saying that, the expected value of the error on trained estimator evaluated using the test samples by enumerating over all the test samples is less than The expected value of the error when we train the model with train set and get the error with the test set. 
+        The estimator of the model is obtained via the following procedures: 
+        \\[1em]
+        Let $\mathcal{F} = \{f_1, f_2\cdots\}$ be a collection of functions and $\hat{f}$ will minimizes the error given the training set. Now let's consider the error the expected value of the error on the test set of the estimator obtained from the train set: 
+        \begin{align*}\tag{A.3.b.2}\label{eqn:A.3.b.2}
+            \mathbb{E}_{\text{train, test }}\left[
+                \hat{\epsilon}_\text{test}
+                (\hat{f}_\text{train})
+            \right]
+            = &
+            \sum_{f\in\mathcal{F}}^{}\mathbb{E}_\text{train, test}
+            \left[
+                \hat{\epsilon}_{\text{\text{test}}}(f)\mathbf{1}\{\hat{f}_\text{train} = f\}
+            \right]
+        \end{align*}
+        For all the model $f$ in the model family $\mathcal{f}$, if $f$ equals to the model estimator on the train set, then we get the expected value of the test error on $f$. Notice that the expected value operator goes in because each model $f$ from the family is independently trained and the train, test samples drawn from the populations are independent events. 
+        \\[1em]
+        By the independence of the train set and test set we can make the claim that (here we are fixing on one of the models $f$ from $\mathcal{F}$): 
+        \begin{align*}\tag{A.3.b.3}\label{eqn:A.3.b.3}
+            \mathbb{E}_{\text{train, test}}
+            \left[
+                \hat{\epsilon}_{\text{\text{test}}}(f)\mathbf{1}\{\hat{f}_\text{train} = f\}
+            \right]
+            =&
+            \underbrace{\mathbb{E}_\text{test}\left[
+                \hat{\epsilon}_\text{test}(f)
+            \right]}_{\epsilon(f)}
+            \mathbb{E}_{\text{train}}\left[ 
+                \mathbf{1}\{\hat{f}_\text{train} = f\}
+            \right]
+        \end{align*}
+        Take not that, in order to compute the sum expected value, we need the probability that $f$ is indeed the estimated model obtained by the train set. Intuitively, depending the randomness of the samples from the populations, the function $\hat{f}_\text{train}$ might be different from time to time, but they should be closed to the true model because it's not biased. And in this case, we can make the claim that:
+        \begin{equation*}\tag{A.3.b.4}\label{eqn:A.3.b.4}
+            \mathbb{E}_\text{train}\left[\mathbf{1}\{\hat{f}_\text{train} = f\}\right] 
+            =
+            \mathbb{P}\left(\hat{f}_\text{train} = f\right)
+        \end{equation*}
+        So then go back to \hyperref[eqn:A.3.b.2]{A.3.b.2}: 
+        \begin{align*}\tag{A.3.b.4}\label{eqn:A.3.b.4}
+            \mathbb{E}_{\text{train, test }}\left[
+                \hat{\epsilon}_\text{test}
+                (\hat{f}_\text{train})
+            \right]
+            = &
+            \sum_{f\in\mathcal{F}}^{}\mathbb{E}_\text{train, test}
+            \left[
+                \hat{\epsilon}_{\text{\text{test}}}(f)\mathbf{1}\{\hat{f}_\text{train} = f\}
+            \right]
+            \\
+            =& 
+            \sum_{f \in \mathcal{F}}^{}
+                \epsilon(f)\mathbb{P}\left(\hat{f}_\text{train} =  f\right)
+            \\
+            =& 
+            \mathbb{E}_\mathcal{F}\left[\epsilon(f)\right]
+        \end{align*}
+        And notice that, because $\hat{f}_train$ has the best errors among all the functions in $\mathcal{F}$, therefore it's less than the above quantity: 
+        \begin{equation*}\tag{A.3.b.5}\label{eqn:A.3.b.5}
+            \underbrace{\mathbb{E}_\text{train} 
+            \left[\hat{\epsilon}_\text{train}(\hat{f}_\text{train})\right]}_{\epsilon(\hat{f}_\text{train})}
+            \le 
+            \mathbb{E}_\mathcal{F}\left[\epsilon(f)\right]
+        \end{equation*}
 
 \section*{Polynomial Regression}
 
