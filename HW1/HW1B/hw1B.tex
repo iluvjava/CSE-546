@@ -284,33 +284,39 @@ if __name__ == "__main__":
     \subsubsection*{B.1.e}
         The mean value theorem asserts that: 
         \begin{align*}\tag{B.1.e.1}\label{eqn:B.1.e.1}
-            \min_{(j - 1)m + 1\le i\le jm} f_(x_i)\le 
+            \min_{(j - 1)m + 1\le i\le jm} f(x_i)\le 
             \bar{f}^{(j)}
-            \le \max_{(j - 1)m +1\le i \le jm} f_(x_i)
+            \le \max_{(j - 1)m +1\le i \le jm} f(x_i)
             \quad \forall 1 \le j \le \frac{n}{m}
         \end{align*}
         And the definition of the L-Lipschitz Continuity, we know that: 
         \begin{align*}\tag{B.1.e.2}\label{eqn:B.1.e.2}
-            |f(x_i) - f(x_j)| \le& \frac{L}{n}|i - j| \quad ;\forall 1 \le i,j \le n
+            |f(x_i) - f(x_j)| \le& \frac{L}{n}|i - j| ;\quad \forall 1 \le i,j \le n
             \\
             \implies
-            \max_{(j - 1)m + 1\le i \le jm}
             \left(
-                f(x_i) 
+                \max_{(j - 1)m + 1\le i \le jm}
+                \left(
+                    f(x_i) 
+                \right)
             \right)
             - 
-            \min_{(j - 1)m + 1\le i \le jm}
-            (f(x_i))
-            \le& (jm) - (j-1)m + 1 = \frac{Lm}{n}
+            \left(
+                \min_{(j - 1)m + 1\le i \le jm}
+                (f(x_i))
+            \right)
+            \le& \frac{L}{n}(jm) - ((j-1)m + 1) = \frac{Lm}{n}
             ;\quad \forall 1 \le j \le \frac{m}{n}
             \\
-            \implies
+            \underset{\text{
+                \hyperref[eqn:B.1.e.1]{B.1.e.1}
+            }}{\implies}
             \max_{(j-1)m + 1 \le i \le jm}
             \left(
                 \bar{f}^{(j)} - f(x_i)
             \right)
             \le&
-            \frac{Lm}{n} \quad ; \forall 1 \le j \le \frac{m}{n}
+            \frac{Lm}{n} ;\quad\forall 1 \le j \le \frac{m}{n}
             \\
             \implies
             \frac{1}{n}\sum_{j = 1}^{n/m}\sum_{i = (j - 1)m - 1}^{jm}\left(
