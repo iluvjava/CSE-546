@@ -115,7 +115,7 @@ def main():
         title("B.1(d): Variance Decomposition")
         save("B.1(d)plot.png")
 
-    PlotErrors()
+    PlotErrors() 
 
 
 if __name__ == "__main__":
