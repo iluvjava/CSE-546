@@ -282,7 +282,85 @@ if __name__ == "__main__":
     main()
         \end{lstlisting}
     \subsubsection*{B.1.e}
-        
+        The mean value theorem asserts that: 
+        \begin{align*}\tag{B.1.e.1}\label{eqn:B.1.e.1}
+            \min_{(j - 1)m + 1\le i\le jm} f_(x_i)\le 
+            \bar{f}^{(j)}
+            \le \max_{(j - 1)m +1\le i \le jm} f_(x_i)
+            \quad \forall 1 \le j \le \frac{n}{m}
+        \end{align*}
+        And the definition of the L-Lipschitz Continuity, we know that: 
+        \begin{align*}\tag{B.1.e.2}\label{eqn:B.1.e.2}
+            |f(x_i) - f(x_j)| \le& \frac{L}{n}|i - j| \quad ;\forall 1 \le i,j \le n
+            \\
+            \implies
+            \max_{(j - 1)m + 1\le i \le jm}
+            \left(
+                f(x_i) 
+            \right)
+            - 
+            \min_{(j - 1)m + 1\le i \le jm}
+            (f(x_i))
+            \le& (jm) - (j-1)m + 1 = \frac{Lm}{n}
+            ;\quad \forall 1 \le j \le \frac{m}{n}
+            \\
+            \implies
+            \max_{(j-1)m + 1 \le i \le jm}
+            \left(
+                \bar{f}^{(j)} - f(x_i)
+            \right)
+            \le&
+            \frac{Lm}{n} \quad ; \forall 1 \le j \le \frac{m}{n}
+            \\
+            \implies
+            \frac{1}{n}\sum_{j = 1}^{n/m}\sum_{i = (j - 1)m - 1}^{jm}\left(
+                \bar{f}^{(j)} - f(x_i)
+            \right)^2
+            \le&
+            \sum_{j = 1}^{\frac{n}{m}}
+            \max_{(j-1)m + 1 \le i \le jm}
+            \left(
+                \bar{f}^{(j)} - f(x_i)
+            \right)^2
+            \in
+            \mathcal{O}
+            \left(
+                \left(
+                    \frac{Lm}{n}
+                \right)^2
+            \right)
+            \\
+            \underset{
+                \text{\hyperref[eqn:B.1.b.2]{B.1.b.2}}
+                }
+                {\implies}
+            \frac{1}{n}\sum_{i = 1}^{n}\left(\mathbb{E}\left[\hat{f}_m(x_i)\right] - f(x_i)\right)^2
+            \in&
+            \mathcal{O}
+            \left(
+                \left(
+                    \frac{Lm}{n}
+                \right)^2
+            \right)
+        \end{align*}
+        And hence, we have an upper bound for the error of the Bias squared. Now, combining both type of error, the average Variance and the Bias squared, we have error in the form of: $\mathcal{O}(\frac{L^2m^2}{n^2} + \frac{\sigma^2}{m})$. 
+        \\[1em]
+        Let's take the derivative of the expression, set it to zero and solve for the optimal $m$ such that the sum of these 2 types of errors are minimized: 
+        \begin{align*}\tag{B.1.e.3}\label{eqn:B.1.e.3}
+            \partial_m 
+            \left[ 
+                \frac{L^2m^2}{n^2} + \frac{\sigma^2}{m}
+            \right] &= 0
+            \\
+            \frac{2mL^2}{n^2} - \frac{\sigma^2}{m} &= 0
+            \\
+            \frac{2m^2L^2}{n^2} - \sigma^2 &= 0
+            \\
+            m &= \sqrt{\frac{\sigma^2 n^2}{L^2}}
+            \\
+            m &= \frac{\sigma n}{L}
+        \end{align*}
+        The optimal value for $m$ is $\frac{\sigma n}{L}$, where $L$ tells us how wiggly the distribution underlying generative function $f$ is, and $\sigma$ tells us how smeared out the function $f(x)$ due to Gaussian Noise. If the Gaussian Noise is huge compare to the the amount of wiggle the function has, then we should use large $m$ to minimize the error, otherwise, we should choose relatively small value for $m$. However, $m$ is proportional to $n$, the number of samples, this a result of $x_i = i/n$, if the samples are not event scatter on the grid point, this term will look different. 
         
 
 \end{document}
