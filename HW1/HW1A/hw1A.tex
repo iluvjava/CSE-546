@@ -192,8 +192,8 @@
     \subsubsection*{A.3.c}
         Some explanations are needed for this question. Consider the following expression: 
         \begin{equation*}\tag{A.3.b.1}\label{eqn:A.3.b.1}
-            \underbrace{\mathbb{E}_\text{train} 
-            \left[\hat{\epsilon}_\text{train}(\hat{f}_\text{train})\right]}_{\epsilon(\hat{f}_\text{train})}
+                \mathbb{E}_\text{train} 
+            \left[\hat{\epsilon}_\text{train}(\hat{f}_\text{train})\right]
             \le
             \mathbb{E}_{\text{train, test }}\left[
                 \hat{\epsilon}_\text{test}
@@ -254,14 +254,14 @@
                 \epsilon(f)\mathbb{P}\left(\hat{f}_\text{train} =  f\right)
             \\
             =& 
-            \mathbb{E}_\mathcal{F}\left[\epsilon(f)\right]
+            \mathbb{E}\left[\epsilon(\hat{f}_\text{train})\right]
         \end{align*}
         And notice that, because $\hat{f}_train$ has the best errors among all the functions in $\mathcal{F}$, therefore it's less than the above quantity: 
         \begin{equation*}\tag{A.3.b.5}\label{eqn:A.3.b.5}
             \underbrace{\mathbb{E}_\text{train} 
             \left[\hat{\epsilon}_\text{train}(\hat{f}_\text{train})\right]}_{\epsilon(\hat{f}_\text{train})}
             \le 
-            \mathbb{E}_\mathcal{F}\left[\epsilon(f)\right]
+            \mathbb{E}\left[\epsilon(\hat{f}_\text{train})\right]
         \end{equation*}
 
 \section*{Polynomial Regression}
