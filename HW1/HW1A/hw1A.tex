@@ -186,13 +186,20 @@
         \end{align*}
         For each term $f(x) - y$, we assume that it's idd, and therefore, its expected value is going to be the same as if it's drawn from the distribution $\mathcal{D}$, because each sample of the train set is drawn in this way, therefore, we can conclude that $\mathbb{E}\left[(f(x) - y)^2\right]$ is going to give $\epsilon(f)$. 
         \\[1em]
-        The proof for $\hat{\epsilon}_\text{test}(f)$ is going to be exact same because they are both drawn from the same idd joint distribution: $\mathcal{D}$. And hence we know that the bias estimator for any given model is going to be unbiased. 
+        The proof for $\hat{\epsilon}_\text{test}(f)$ is going to be exact same because they are both drawn from the same idd joint distribution: $\mathcal{D}$. And hence we know that the bias estimator for any given model is going to be unbiased. Since both has the same variance we know that: 
+        \begin{equation*}\tag{A.3.a.2}\label{eqn:A.3.a.2}
+            \mathbb{E}_\text{train}\left[\hat{\epsilon}_\text{train}(f)\right]
+            =
+            \mathbb{E}_\text{test}\left[\hat{\epsilon}_\text{test}(f)\right]
+            =
+            \hat{\epsilon}(f) 
+        \end{equation*}
     \subsubsection*{A.3.b}
         $\mathbb{E}_{\text{train}}\left[\hat{\epsilon}_\text{train}(\hat{f})\right]\ne \mathbb{E}\left[\epsilon(\hat{f})\right]$ Consider Linear regression where 2 the sample size is so small ($d - 1$ samples where $d$ is the number of features) that we have a perfect fit model $\hat{f}$ then the bias of the model is going to be zero under the training set, however, the bias over the real distribution is not, because $\mathcal{D}$ could be non-linear and there could be noises, which both will introduce some biased. 
     \subsubsection*{A.3.c}
         Some explanations are needed for this question. Consider the following expression: 
-        \begin{equation*}\tag{A.3.b.1}\label{eqn:A.3.b.1}
-                \mathbb{E}_\text{train} 
+        \begin{equation*}\tag{A.3.c.1}\label{eqn:A.3.c.1}
+            \mathbb{E}_\text{train} 
             \left[\hat{\epsilon}_\text{train}(\hat{f}_\text{train})\right]
             \le
             \mathbb{E}_{\text{train, test }}\left[
@@ -204,66 +211,63 @@
         The estimator of the model is obtained via the following procedures: 
         \\[1em]
         Let $\mathcal{F} = \{f_1, f_2\cdots\}$ be a collection of functions and $\hat{f}$ will minimizes the error given the training set. Now let's consider the error the expected value of the error on the test set of the estimator obtained from the train set: 
-        \begin{align*}\tag{A.3.b.2}\label{eqn:A.3.b.2}
+        \begin{align*}\tag{A.3.c.2}\label{eqn:A.3.c.2}
             \mathbb{E}_{\text{train, test }}\left[
                 \hat{\epsilon}_\text{test}
                 (\hat{f}_\text{train})
-            \right]
+            \right]\beta
             = &
             \sum_{f\in\mathcal{F}}^{}\mathbb{E}_\text{train, test}
             \left[
                 \hat{\epsilon}_{\text{\text{test}}}(f)\mathbf{1}\{\hat{f}_\text{train} = f\}
             \right]
-        \end{align*}
-        For all the model $f$ in the model family $\mathcal{f}$, if $f$ equals to the model estimator on the train set, then we get the expected value of the test error on $f$. Notice that the expected value operator goes in because each model $f$ from the family is independently trained and the train, test samples drawn from the populations are independent events. 
-        \\[1em]
-        By the independence of the train set and test set we can make the claim that (here we are fixing on one of the models $f$ from $\mathcal{F}$): 
-        \begin{align*}\tag{A.3.b.3}\label{eqn:A.3.b.3}
-            \mathbb{E}_{\text{train, test}}
-            \left[
-                \hat{\epsilon}_{\text{\text{test}}}(f)\mathbf{1}\{\hat{f}_\text{train} = f\}
+            \\
+            \underset{\text{(1)}}{=} &
+            \sum_{f\in\mathcal{F}}^{}
+            \mathbb{E}_\text{test}\left[
+                \hat{\epsilon}(f)
             \right]
-            =&
-            \underbrace{\mathbb{E}_\text{test}\left[
-                \hat{\epsilon}_\text{test}(f)
-            \right]}_{\epsilon(f)}
-            \mathbb{E}_{\text{train}}\left[ 
+            \mathbb{E}_\text{train}\left[\epsilon_\text{test}
                 \mathbf{1}\{\hat{f}_\text{train} = f\}
             \right]
+            \\
+            = &
+            \sum_{f\in\mathcal{F}}^{}
+            \mathbb{E}_\text{test}\left[
+                \hat{\epsilon}_\text{test}(f)
+            \right]
+            \mathbb{P}\left(
+                \hat{f}_\text{train} = f
+            \right)
+            \\
+            = &
+            \mathbb{E}_\text{test}\left[
+                \hat{\epsilon}_\text{test}(f)
+            \right]
+            \\
+            \underset{\text{(2)}}{=}&
+            \mathbb{E}_\text{train}\left[
+                \hat{\epsilon}_\text{train}(f)
+            \right]
         \end{align*}
-        Take not that, in order to compute the sum expected value, we need the probability that $f$ is indeed the estimated model obtained by the train set. Intuitively, depending the randomness of the samples from the populations, the function $\hat{f}_\text{train}$ might be different from time to time, but they should be closed to the true model because it's not biased. And in this case, we can make the claim that:
-        \begin{equation*}\tag{A.3.b.4}\label{eqn:A.3.b.4}
-            \mathbb{E}_\text{train}\left[\mathbf{1}\{\hat{f}_\text{train} = f\}\right] 
+        (1) This is by the independence between the test and the training set, therefore, 2 random variable based on each one them can have the expected value operator distributes over. (2) this is by results from \hyperref[eqn:A.3.a.2]{A.3.a.2}. Now, by the definition that $\hat{f}$ minimizes the error compare to all other models on the training setm then by definition, the expected value of it is going to keep the inequality, therefore: 
+        \begin{align*}\tag{A.3.c.1}\label{eqn:A.3.c.1}
+            & \hat{f} = \min_{f\in\mathcal{F}} \hat{\epsilon}_\text{train}(f)
+            \\
+            \implies & 
+            \mathbb{E}_\text{train} 
+            \left[\hat{\epsilon}_\text{train}(\hat{f}_\text{train})\right]
+            \le 
+            \mathbb{E}_\text{train}\left[
+                \hat{\epsilon}_\text{train}(f)
+            \right]
             =
-            \mathbb{P}\left(\hat{f}_\text{train} = f\right)
-        \end{equation*}
-        So then go back to \hyperref[eqn:A.3.b.2]{A.3.b.2}: 
-        \begin{align*}\tag{A.3.b.4}\label{eqn:A.3.b.4}
             \mathbb{E}_{\text{train, test }}\left[
                 \hat{\epsilon}_\text{test}
                 (\hat{f}_\text{train})
             \right]
-            = &
-            \sum_{f\in\mathcal{F}}^{}\mathbb{E}_\text{train, test}
-            \left[
-                \hat{\epsilon}_{\text{\text{test}}}(f)\mathbf{1}\{\hat{f}_\text{train} = f\}
-            \right]
-            \\
-            =& 
-            \sum_{f \in \mathcal{F}}^{}
-                \epsilon(f)\mathbb{P}\left(\hat{f}_\text{train} =  f\right)
-            \\
-            =& 
-            \mathbb{E}\left[\epsilon(\hat{f}_\text{train})\right]
         \end{align*}
-        And notice that, because $\hat{f}_train$ has the best errors among all the functions in $\mathcal{F}$, therefore it's less than the above quantity: 
-        \begin{equation*}\tag{A.3.b.5}\label{eqn:A.3.b.5}
-            \underbrace{\mathbb{E}_\text{train} 
-            \left[\hat{\epsilon}_\text{train}(\hat{f}_\text{train})\right]}_{\epsilon(\hat{f}_\text{train})}
-            \le 
-            \mathbb{E}\left[\epsilon(\hat{f}_\text{train})\right]
-        \end{equation*}
-
+        And this is what we want to show for this problem. 
 \section*{Polynomial Regression}
 
 \section*{Ridge Regression on MNIST}
