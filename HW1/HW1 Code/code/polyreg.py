@@ -12,11 +12,13 @@ import numpy as np
 
 class PolynomialRegression:
 
-    def __init__(self, degree=1, reg_lambda=1E-8):
+    def __init__(this, degree=1, reg_lambda=1E-8):
         """
         Constructor
         """
-        #TODO
+        this.Degree = degree
+        this.Lambda = reg_lambda
+
 
     def polyfeatures(self, X, degree):
         """
@@ -32,9 +34,11 @@ class PolynomialRegression:
             X is an n-by-1 column numpy array
             degree is a positive integer
         """
-        #TODO
+        assert len(X.shape) == 2 and X.shape[1] == 1, "Wrong input shape for X for polyfeatures."
+        return np.hstack([X**II for II in range(1, degree + 1)])
 
-    def fit(self, X, y):
+
+    def fit(this, X, y):
         """
             Trains the model
             Arguments:
@@ -46,9 +50,21 @@ class PolynomialRegression:
                 You need to apply polynomial expansion and scaling
                 at first
         """
-        #TODO
 
-    def predict(self, X):
+        X = this.polyfeatures(X, this.Degree)
+        this.FeatureSTD = np.std(X, axis=0, keepdims=True)
+        X = X / this.FeatureSTD
+        XAug = np.zeros((X.shape[0], X.shape[1] + 1))
+        XAug[:, :-1] = X
+        XAug[:, -1] = np.ones(X.shape[0])
+        X = XAug
+        Regularizer = np.eye(X.shape[1])*this.Lambda
+        Regularizer = this.Lambda*np.diag(np.ones(X.shape[1]))
+        Regularizer[-1, -1] = 0
+        this.ModelCoefficients = np.linalg.pinv(X.T@X + Regularizer)@X.T@y
+
+
+    def predict(this, X):
         """
         Use the trained model to predict values for each instance in X
         Arguments:
@@ -56,7 +72,15 @@ class PolynomialRegression:
         Returns:
             an n-by-1 numpy array of the predictions
         """
-        # TODO
+        # Standardize input features using training data.
+        X = this.polyfeatures(X, this.Degree)
+        X = X / this.FeatureSTD
+        XAug = np.zeros((X.shape[0], X.shape[1] + 1))
+        XAug[:, :-1] = X
+        XAug[:, -1] = np.ones(X.shape[0])
+        PredictedY = XAug@this.ModelCoefficients
+        return PredictedY
+
 
 
 #-----------------------------------------------------------------
