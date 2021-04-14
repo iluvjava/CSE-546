@@ -58,6 +58,9 @@ def generateLearningCurve(X, y, degree, regLambda):
         errorTests[itrial, :] = errTest
         itrial = itrial + 1
 
+    errorTrain = errorTrains.mean(axis=0)
+    errorTest = errorTests.mean(axis=0)
+
     plotLearningCurve(errorTrain, errorTest, regLambda, degree)
 
 

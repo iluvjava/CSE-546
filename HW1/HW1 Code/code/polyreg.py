@@ -125,6 +125,4 @@ def learningCurve(Xtrain, Ytrain, Xtest, Ytest, reg_lambda, degree):
         TestPredicted = Model.predict(Xtest)
         errorTest[II] = np.mean((Ytest- TestPredicted)**2)
 
-    print(f"Errors out: ")
-    print(errorTrain, errorTest)
     return errorTrain, errorTest
