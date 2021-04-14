@@ -112,10 +112,19 @@ def learningCurve(Xtrain, Ytrain, Xtest, Ytest, reg_lambda, degree):
     """
 
     n = len(Xtrain)
-
     errorTrain = np.zeros(n)
     errorTest = np.zeros(n)
+    for II in range(2, n):
+        TrainSetFeatures, TrainSetLabels = Xtrain[: II+ 1], Ytrain[:II + 1]
+        Model = PolynomialRegression(degree=degree, reg_lambda=reg_lambda)
+        Model.fit(TrainSetFeatures, TrainSetLabels)
 
-    #TODO -- complete rest of method; errorTrain and errorTest are already the correct shape
+        TrainPredicted = Model.predict(TrainSetFeatures)
+        errorTrain[II] = np.mean((TrainPredicted - TrainSetLabels)**2)
 
+        TestPredicted = Model.predict(Xtest)
+        errorTest[II] = np.mean((Ytest- TestPredicted)**2)
+
+    print(f"Errors out: ")
+    print(errorTrain, errorTest)
     return errorTrain, errorTest
