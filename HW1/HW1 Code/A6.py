@@ -57,6 +57,7 @@ def main():
     print(Y1.dtype)
     print(Y2.dtype)
     print("Ok we are ready to train the model and make prediction now. ")
+
     def TrainTheModel(X1, Y1):
         Y = (np.array([[II] for II in range(10)]) == Y1).astype(np.float)
         return train(X1, Y.T, reg_lambda=1e-4)
@@ -66,7 +67,8 @@ def main():
     W = TrainTheModel(X1, Y1)
     PredictedLabels = predict(W, X2)
     print(f"The error rate on the test set is: {ErrorRate(PredictedLabels, Y2)}")
-
+    Predictedlabels = predict(W, X1)
+    print(f"The error rate on the train set is: {ErrorRate(Predictedlabels, Y1)}")
 
 
 if __name__ == "__main__":

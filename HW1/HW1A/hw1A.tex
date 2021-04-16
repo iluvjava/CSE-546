@@ -449,7 +449,23 @@ def learningCurve(Xtrain, Ytrain, Xtest, Ytest, reg_lambda, degree):
         \end{align*}
         Note that, next we are taking the derivative of this scalar error function wrt to the weight matrix $W$, which should produce the gradient of the above error function. And the gradient will be a matrix of size $d\times k$, and the solution to gradient zero will be the model that minizes the square loss of the ridge regression. 
         \\
-        We will also make use of the rule that $\nabla [g(Ax)] = A^T\nabla[g](Ax)$ where $g(x)$ is a $\mathbb{R}^{m}\mapsto \mathbb{R}^{n}$, and the matrix $A\in \mathbb{R}^{m\times n}$. I learn this technique in math 515 and I am just going to use this here. In addition, take the Frobenius Norm is easy because it's a giant sum of all the entries squared in the matrix, and each weight of the matrix is independent from eaco other, so $\partial_{w_{ij}}[||W||_F^2] = 2w_{ij}$. Using these fact we can take the gradient of the above loss function and get: 
+        We will also make use of the rule that $\nabla [g(AX)] = A^T\nabla[g](AX)$ where $g(X)$ is a $\mathbb{R}^{m\times k}\mapsto \mathbb{R}^{n}$, and the matrix $A\in \mathbb{R}^{m\times n}$. Then the derivative of $g(AX)$ wrt to $X$ will just be the matrix $A^T\nabla[g](X)$. This is true by consider just taking derivative wrt to one of the element for the scalar function:
+        \begin{align*}\tag{A.6.1.1}\label{eqn:A.6.1.1}
+            &\partial_{X_{i, j}}[g(AX)] 
+            \\
+            =& 
+            \nabla_{X_{:, j}}[g(X)]^T\partial_{X_{i, j}}[AX]
+            \\
+            =&
+            \partial_{X_{:, j}}[g(X)]^TA_{:, i}
+            \\
+            =& 
+            A_{:, j}^T\nabla_{X_{:, j}}[g(X)]^T
+        \end{align*}
+        \\
+        Please zoom in and take a look at the subscript carefully, demonstration here make heavy use of subcript to indicate which column vector in the matrix I am taking the derivative wrt. 
+        \\
+        In addition, take the Frobenius Norm is easy because it's a giant sum of all the entries squared in the matrix, and each weight of the matrix is independent from eaco other, so $\partial_{w_{ij}}[||W||_F^2] = 2w_{ij}$. Using these fact we can take the gradient of the above loss function and get: 
         \begin{align*}\tag{A.6.2}\label{eqn:A.6.2}
             \nabla_W \left[
                 \Vert XW  - Y\Vert_2^2 + \Vert W\Vert_F^2
@@ -463,8 +479,90 @@ def learningCurve(Xtrain, Ytrain, Xtest, Ytest, reg_lambda, degree):
             \\
             W &= (X^TX + \lambda I)^{-1}X^TY
         \end{align*}
-        And this is the solution for the optimal model that set the gradient of the ridge regression to zero gradient. And notice that in practice, due to sparcity of the matrix $X$, it's better to use Penrose Psuedo Inverse when the size of the regularizer is small. Also I am not sure whether to standardize the data for each features to zero mean and unit variance, I would assume not. 
+        And this is the solution for the optimal model that set the gradient of the ridge regression to zero gradient. And notice that in practice, due to sparcity of the matrix $X$, it's better to use Penrose Psuedo Inverse when the size of the regularizer is small. Also I am not sure whether to standardize the data for each features to zero mean and unit variance, I would assume not. Here is the code for implementing the training and testing on the model: 
+        \begin{lstlisting}[language=python]
+### This file constains code for solving HW1 A6 for class CSE 546/446 SPRING 2021.
+from mnist import MNIST
+import numpy as np
+arr = np.array
+eye = np.eye
+pinv = np.linalg.pinv
+argmax = np.argmax
+
+def load_dataset():
+    mndata = MNIST("./data/")
+    X_train, labels_train = map(np.array, mndata.load_training())
+    X_test, labels_test = map(np.array, mndata.load_testing())
+    X_train = X_train/255
+    X_test = X_test/255
+    return X_train, X_test, labels_train, labels_test
+
+
+def train(X, Y, reg_lambda):
+    """
+
+
+    Args:
+        X: Should be a 784 by n matrix, with all the samples pack vertically as rows into the matrix.
+        Y: Should be a n by 10 matrix, comtaninig all the labels for the digits pack vertically as rows for the matrix.
+        reg_lambda:
+            This is the regularization constant for the system.
+    Returns:
+        The trained linear model for the system, should be a 784 by 10 matrix such that its transpose multiply by the
+        feature vector will produce the label vector.
+
+    """
+    Y = Y.astype(np.float64)
+    return pinv(X.T@X + reg_lambda*eye(X.shape[1]))@X.T@Y
+
+
+def predict(W, Xnew):
+    """
+
+    Args:
+        W: Should be a 784 by 10 matrix, which is the linear model.
+        Xnew: Should be a n by 784 matrix that contains all the samples we want to to predict with using
+        this given model.
+    Returns:
+        A single vector containing all the digits predicted using this model.
+    """
+    return argmax(W.T@Xnew.T, axis=0)
+
+
+def main():
+    X1, X2, Y1, Y2 = load_dataset()
+    print(X1.shape) # (60000, 784)
+    print(X2.shape) # (10000, 784)
+    print(Y1.shape) # (60000, )
+    print(Y2.shape) # (10000, )
+    print(X1.dtype)
+    print(X2.dtype)
+    print(Y1.dtype)
+    print(Y2.dtype)
+    print("Ok we are ready to train the model and make prediction now. ")
+
+    def TrainTheModel(X1, Y1):
+        Y = (np.array([[II] for II in range(10)]) == Y1).astype(np.float)
+        return train(X1, Y.T, reg_lambda=1e-4)
+    def ErrorRate(y1, y2):
+        return sum(y1 != y2)/y1.size
+
+    W = TrainTheModel(X1, Y1)
+    PredictedLabels = predict(W, X2)
+    print(f"The error rate on the test set is: {ErrorRate(PredictedLabels, Y2)}")
+    Predictedlabels = predict(W, X1)
+    print(f"The error rate on the train set is: {ErrorRate(Predictedlabels, Y1)}")
+ 
+
+if __name__ == "__main__":
+    import os
+    print(f"cwd: {os.getcwd()}")
+    print(f"script running at {os.curdir}")
+    main()
+        \end{lstlisting}
+
     \section*{B.2}
+        
         
 
 
