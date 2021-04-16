@@ -6,6 +6,7 @@ eye = np.eye
 pinv = np.linalg.pinv
 argmax = np.argmax
 
+
 def load_dataset():
     mndata = MNIST("./data/")
     X_train, labels_train = map(np.array, mndata.load_training())
