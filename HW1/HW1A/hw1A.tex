@@ -270,10 +270,202 @@
         And this is what we want to show for this problem. 
 \section*{Polynomial Regression}
     \section*{A.4}
-        Code has been implemented. 
+        This part is too simple. See \hyperref[lst:A.5.1]{A.5.1}
     \section*{A.5}
-        Code has been implemented. 
+        Code has been implemented. Here is the procedures for fitting the models: 
+        \begin{enumerate}
+        \item[1.] Augmenting the features by raising the features to it's polynomials powers. Here we assume that the feature sare not interaction. Stack the initial feature columns horizontally to produce the Vandermonde matrix for the features. 
+        \item[2.] Standardizing the data across the features (the columns) by it's standard deviation. This is just deviding each column by the sd of that column  
+        \item[3.] Adding an additional rows of ones. 
+        \item[4.] Creating the regularizer as a diagonal matrix, but the bottom right corner of the diagonal matrix is seet to zeero so we don't regularize on the offset for the regression model.  
+        \end{enumerate}
+        \label{lst:A.5.1}
+        \begin{lstlisting}[language=python]
+'''
+    Template for polynomial regression
+    AUTHOR Eric Eaton, Xiaoxiang Hu
+'''
+
+import numpy as np
+
+
+#-----------------------------------------------------------------
+#  Class PolynomialRegression
+#-----------------------------------------------------------------
+
+class PolynomialRegression:
+
+    def __init__(this, degree=1, reg_lambda=1E-8):
+        """
+        Constructor
+        """
+        this.Degree = degree
+        this.Lambda = reg_lambda
+
+
+    def polyfeatures(self, X, degree):
+        """
+        Expands the given X into an n * d array of polynomial features of
+            degree d.
+
+        Returns:
+            A n-by-d numpy array, with each row comprising of
+            X, X * X, X ** 3, ... up to the dth power of X.
+            Note that the returned matrix will not include the zero-th power.
+
+        Arguments:
+            X is an n-by-1 column numpy array
+            degree is a positive integer
+        """
+        assert len(X.shape) == 2 and X.shape[1] == 1, "Wrong input shape for X for polyfeatures."
+        return np.hstack([X**II for II in range(1, degree + 1)])
+
+
+    def fit(this, X, y):
+        """
+            Trains the model
+            Arguments:
+                X is a n-by-1 array
+                y is an n-by-1 array
+            Returns:
+                No return value
+            Note:
+                You need to apply polynomial expansion and scaling
+                at first
+        """
+
+        X = this.polyfeatures(X, this.Degree)
+        this.FeatureSTD = np.std(X, axis=0, keepdims=True)
+        X = X / this.FeatureSTD
+        XAug = np.zeros((X.shape[0], X.shape[1] + 1))
+        XAug[:, :-1] = X
+        XAug[:, -1] = np.ones(X.shape[0])
+        X = XAug
+        Regularizer = np.eye(X.shape[1])*this.Lambda
+        Regularizer = this.Lambda*np.diag(np.ones(X.shape[1]))
+        Regularizer[-1, -1] = 0
+        this.ModelCoefficients = np.linalg.pinv(X.T@X + Regularizer)@X.T@y
+
+
+    def predict(this, X):
+        """
+        Use the trained model to predict values for each instance in X
+        Arguments:
+            X is a n-by-1 numpy array
+        Returns:
+            an n-by-1 numpy array of the predictions
+        """
+        # Standardize input features using training data.
+        X = this.polyfeatures(X, this.Degree)
+        X = X / this.FeatureSTD
+        XAug = np.zeros((X.shape[0], X.shape[1] + 1))
+        XAug[:, :-1] = X
+        XAug[:, -1] = np.ones(X.shape[0])
+        PredictedY = XAug@this.ModelCoefficients
+        return PredictedY
+
+
+
+#-----------------------------------------------------------------
+#  End of Class PolynomialRegression
+#-----------------------------------------------------------------
+
+
+
+def learningCurve(Xtrain, Ytrain, Xtest, Ytest, reg_lambda, degree):
+    """
+    Compute learning curve
+
+    Arguments:
+        Xtrain -- Training X, n-by-1 matrix
+        Ytrain -- Training y, n-by-1 matrix
+        Xtest -- Testing X, m-by-1 matrix
+        Ytest -- Testing Y, m-by-1 matrix
+        regLambda -- regularization factor
+        degree -- polynomial degree
+
+    Returns:
+        errorTrain -- errorTrain[i] is the training accuracy using
+        model trained by Xtrain[0:(i+1)]
+        errorTest -- errorTrain[i] is the testing accuracy using
+        model trained by Xtrain[0:(i+1)]
+
+    Note:
+        errorTrain[0:1] and errorTest[0:1] won't actually matter, since we start displaying the learning curve at n = 2 (or higher)
+    """
+
+    n = len(Xtrain)
+    errorTrain = np.zeros(n)
+    errorTest = np.zeros(n)
+    for II in range(2, n):
+        TrainSetFeatures, TrainSetLabels = Xtrain[: II+ 1], Ytrain[:II + 1]
+        Model = PolynomialRegression(degree=degree, reg_lambda=reg_lambda)
+        Model.fit(TrainSetFeatures, TrainSetLabels)
+
+        TrainPredicted = Model.predict(TrainSetFeatures)
+        errorTrain[II] = np.mean((TrainPredicted - TrainSetLabels)**2)
+
+        TestPredicted = Model.predict(Xtest)
+        errorTest[II] = np.mean((Ytest- TestPredicted)**2)
+
+    return errorTrain, errorTest
+
+        \end{lstlisting}
 
 \section*{Ridge Regression on MNIST}
+    \subsection*{A.6}
+        For this problem we are looking at a linear model $W\in\mathbb{R}^{n\times d}$, and training labels $y_i\in \{0, 1\}^{10}$. And the out put labels are just taking the index of the maximal element in the predicted vector. Note: $d = 784$, representing a all the features, each pixel of the flatten $28 \times 28$ image in the MNIST data set.
+        \\
+        The model we want to train is a weight matrix $W = [w_i, w_2 \cdots w_d]$, and to predict the value for a given new data, let the estimator model to be $\hat{W}$, it's use like: 
+        $$  
+            \underset{0\le i \le 10}{\text{argmin}}\left\lbrace
+                e_{j + 1}^T\widehat{W}^Tx_i
+            \right\rbrace
+        $$
+        We take the output from the transposed weight matrix and look for the index of the entry with the maximal value to predict the lable digits. In addition, we also pack all the label vector vertically into a Matix $Y = [y_1, y_2, \cdots y_n]^T$, which will be $n \times 10$, and the data matrix $X = [x_1, x_2 \cdots x_n]^T$, to train the model $\widehat{W}$. 
+        \\
+        We will pick up from the computation that is given from the HW sheet and continue: 
+        \begin{align*}\tag{A.6.1}\label{eqn:A.6.1}
+            &\sum_{j = 1}^{k}
+            \left(
+                    \Vert Xw_j - Ye_j\Vert_2^2 + \lambda \Vert w_j\Vert^2_2
+            \right)
+            \\
+            =& 
+            \sum_{j = 1}^{k}\left(
+                \Vert Xw_j - (Y)_{:, j} \Vert_2^2
+            \right)
+            \lambda \sum_{j = 1}^{k}\Vert w_j\Vert_2^2
+            \\
+            =&
+            \sum_{j = 1}^{k}\left(
+                \Vert (Xw)_{:, j} - (Y)_{:, j} \Vert_2^2
+            \right)
+            + 
+            \lambda \Vert W\Vert_F^2
+            \\
+            = &
+            \Vert XW  - Y\Vert_2^2 + \lambda\Vert W\Vert_F^2
+        \end{align*}
+        Note that, next we are taking the derivative of this scalar error function wrt to the weight matrix $W$, which should produce the gradient of the above error function. And the gradient will be a matrix of size $d\times k$, and the solution to gradient zero will be the model that minizes the square loss of the ridge regression. 
+        \\
+        We will also make use of the rule that $\nabla [g(Ax)] = A^T\nabla[g](Ax)$ where $g(x)$ is a $\mathbb{R}^{m}\mapsto \mathbb{R}^{n}$, and the matrix $A\in \mathbb{R}^{m\times n}$. I learn this technique in math 515 and I am just going to use this here. In addition, take the Frobenius Norm is easy because it's a giant sum of all the entries squared in the matrix, and each weight of the matrix is independent from eaco other, so $\partial_{w_{ij}}[||W||_F^2] = 2w_{ij}$. Using these fact we can take the gradient of the above loss function and get: 
+        \begin{align*}\tag{A.6.2}\label{eqn:A.6.2}
+            \nabla_W \left[
+                \Vert XW  - Y\Vert_2^2 + \Vert W\Vert_F^2
+            \right] &= 0
+            \\
+            2X^T(XW - Y) + 2\lambda W &= \mathbf{0}
+            \\
+            X^TXW - X^TY + \lambda W &= 0 
+            \\
+            (X^TX + \lambda I)W &= X^TY
+            \\
+            W &= (X^TX + \lambda I)^{-1}X^TY
+        \end{align*}
+        And this is the solution for the optimal model that set the gradient of the ridge regression to zero gradient. And notice that in practice, due to sparcity of the matrix $X$, it's better to use Penrose Psuedo Inverse when the size of the regularizer is small. Also I am not sure whether to standardize the data for each features to zero mean and unit variance, I would assume not. 
+    \section*{B.2}
+        
+
 
 \end{document}
