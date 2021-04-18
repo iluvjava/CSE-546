@@ -40,11 +40,13 @@ def train(X, Y, reg_lambda):
 
     Args:
         X: Should be a "n by d" matrix, with all the samples pack vertically as rows into the matrix.
-        Y: Should be a "n by 10" matrix, comtaninig all the labels for the digits pack vertically as rows for the matrix.
+        Y: Should be a "n by 10" matrix, comtaninig all the labels for the digits pack vertically as
+        rows for the matrix.
         reg_lambda:
             This is the regularization constant for the system.
     Returns:
-        The trained linear model for the system, should be a 784 by 10 matrix such that its transpose multiply by the
+        The trained linear model for the system, should be a 784 by 10 matrix such that its
+        transpose multiply by the
         feature vector will produce the label vector.
 
     """
@@ -57,8 +59,8 @@ def predict(W, Xnew):
 
     Args:
         W: Should be a d by 10 matrix, which is the linear model.
-        Xnew: Should be a n by 784 matrix that contains all the samples we want to to predict with using
-        this given model.
+        Xnew: Should be a n by 784 matrix that contains all the samples we want to
+        to predict with using this given model.
     Returns:
         A single vector containing all the digits predicted using this model.
     """
@@ -83,14 +85,14 @@ def KFoldGenerate(k, X, Y):
     N = X.shape[0]
     n = N/k  # Partition size, could be a float.
     for II in range(k):
-        TestPartitionStart = int(II*n)
-        TestPartitionEnds = int((II + 1)*n)
-        XTest = X[TestPartitionStart: TestPartitionEnds, :]
-        YTest = Y[TestPartitionStart: TestPartitionEnds]
-        ValidateIndices = [Row for Row in range(N) if (Row < TestPartitionStart or Row >= TestPartitionEnds)]
-        XValidate = X[ValidateIndices, :]
-        YValidate = Y[ValidateIndices]
-        yield XTest, XValidate, YTest, YValidate
+        ValidatePartitionStart = int(II*n)
+        ValidatePartitionEnd = int((II + 1)*n)
+        Xvalidate = X[ValidatePartitionStart: ValidatePartitionEnd, :]
+        Yvalidate = Y[ValidatePartitionStart: ValidatePartitionEnd]
+        TrainIndices = [Row for Row in range(N) if (Row < ValidatePartitionStart or Row >= ValidatePartitionEnd)]
+        Xtrain = X[TrainIndices, :]
+        Ytrain = Y[TrainIndices]
+        yield Xtrain, Xvalidate, Ytrain, Yvalidate
 
 
 class FeaturesRemap:
@@ -116,6 +118,8 @@ def TestKfoldGenearate():
 
 def main():
     X1, X2, Y1, Y2 = load_dataset()
+    # Reduce size of the training set for speed, or else it takes too long to run.
+    # training size is 10 000, so then cross set is going to be
     X1 = X1[::6, :]
     Y1 = Y1[::6]
     print(X1.shape) # (60000, 784)
@@ -139,7 +143,7 @@ def main():
     def ErrorRate(y1, y2):
         return sum(y1 != y2)/y1.size
 
-    Pdegreees = arange(600, 6000, 100)
+    Pdegreees = arange(300, 3000, 100)
     KfoldTrainErrorRate = []
     KfoldValidateErrorRate = []
     for p in Pdegreees:
@@ -166,8 +170,10 @@ def main():
     ylabel("Percentage of wrong label"); xlabel("P; row count of G matrix")
     MinPindex = argmin(KfoldValidateErrorRate)
     MinP = Pdegreees[MinPindex]
+    MinValError = KfoldValidateErrorRate[MinPindex]
     print(f"The best P is: {MinP}")
-    plot(MinPindex, MinP, "bo")
+    print(f"The corresponding validation error is: {MinValError}")
+    plot(MinP, MinValError, "bo")
     saveas("B2plot.png", format="png")
 
 
