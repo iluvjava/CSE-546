@@ -46,16 +46,16 @@
             \\[1em]
             This is even more true when we just consider taking the average as a way of making prediction (Which is not a bad way to predict the output given $X = x$), then, this is literally the Central limit theorem, as we have more and more samples, the variance of the sample average gets smaller. 
         \subsubsection*{(A.0.e)}
-            Yes, and this is exactly the idea behind regularization, where it tries to change the objective of the optimization problem a bit, allowing the models to use less features and prevent it from over-fitting. 
+            Yes, and this is exactly the idea behind regularization, where it tries to change the objective of the optimization problem a bit, allowing the models to use less features and prevent it from over-fitting. This improves the ability for the model to generaize better by reduce the model variance of the model. 
         \subsubsection*{(A.0.f)}
-            We should use the test set to tune the hyper-parameters for the models. This is true because the test set is indicative of true performance of the model. 
+            We should use the train set to tune the hyper-parameters for the models. This is true because the test set is for the final benchmark for our models. 
             \\
-            Consider hypertunning the polynomial regression using training set only, where $p$ is the degree of polynomial. Then, for any given sample that is normalized, there is a $p = n$ that where $n$ is the total number of samples and th polynomial will fit perfectly. This is obviously over-fitting. Hence we should hypertune using the test data set. 
+            Consider polynomial regression, we can use cross validations (Which only uses the training set) to look for the models with the least amount of variance, or models with the least amount of error or something in between them. 
         \subsubsection*{(A.0.g)}
             False. It's an underestimate. This is a conclusion from the lecture. 
 
 \section*{Maximum Likelihood Estimator(MLE)}
-    \subsection*{(A.1)}
+    \subsection*{A.1}
         \subsubsection*{(A.1.a)}\label{A.1.a}
             \textbf{Objective}: Find the expression for the maximum=likelihood estimate for the parameter $\lambda$ for the poisson distribution, interns of the goal count. Assume idd rvs. 
             \\[1em]
@@ -127,17 +127,17 @@
         \subsubsection*{(A.1.c)}
             The numerical results for 5 observations has been shown in \hyperref[A.1.a]{A.1.a} and \hyperref[A.1.b]{A.1.b} respectively. 
             
-    \subsection*{(A.2)}
+    \subsection*{A.2}
         \textbf{Objective: } Find the MLE for the uniform distribution on $[o, \theta]$, where $\theta$ is the value we want to estimate.
         \\[1em]
-        Suppose that an observations has been made: $x_1, x_2, \cdots x_N$, and we assume that they are idd, and we want to find the likelihood of such an observation is generated using the Uniform distribution. And this will be given by the expression: 
+        Suppose that observations has been made: $x_1, x_2, \cdots x_N$, and we assume that they are idd, and we want to find the likelihood of such an observation is generated using the Uniform distribution. And this will be given by the expression: 
         \begin{equation*}\tag{A.2.1}\label{eqn:A.2.1}
             \prod_{n = 1}^{N} 
             \underbrace{
             \mathbb{P}\left(X = x_n\right)}_{\frac{1}{\theta}\mathbf{1}\{0 \le x_n \le \theta\}}
         \end{equation*}
         \\[1em]
-        Observe that, if any of the observation is beyond the range $[0, \theta]$, we will have zero likelihood, so let's assume that $\theta \le \max_{1\le i \le N}(x_i)$, then we will have this expression for the likelihood: 
+        Observe that, if any of the observation is beyond the range $[0, \theta]$, we will have zero likelihood, so let's assume that $\theta \ge \max_{1\le i \le N}(x_i)$, then we will have this expression for the likelihood: 
         \begin{equation*}\tag{A.2.2}\label{eqn:A.2.2}
             \prod_{n = 1}^{N} 
             \frac{1}{\theta} = \frac{1}{\theta^N}
