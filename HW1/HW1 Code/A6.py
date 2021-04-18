@@ -21,7 +21,7 @@ def train(X, Y, reg_lambda):
 
 
     Args:
-        X: Should be a 784 by n matrix, with all the samples pack vertically as rows into the matrix.
+        X: Should be a n by 784 matrix, with all the samples pack vertically as rows into the matrix.
         Y: Should be a n by 10 matrix, comtaninig all the labels for the digits pack vertically as rows for the matrix.
         reg_lambda:
             This is the regularization constant for the system.

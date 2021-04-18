@@ -27,32 +27,32 @@
 
 \section*{Short Answer and ``True or False'' Conceptual Questions}
     \subsection*{A.0}
-        \subsubsection*{(A.0.a)}
+        \subsubsection*{A.0.a}
             The bias and variance is similar to the concepts of precision and accuracy in Experimental Physics. Under the context of machine learning, Bias refers to part of the learning errors caused by a model being too simple, in a way that it just cant represent the joint probability density function with its simplicity. 
             \\[1em]
             The variance refers to the variance of the random variable $\hat{f}(x)$, which depends on the samples we observed. 
             \\[1em]
             Bias-variance trade off relates 2 types of learning errors (Bias, Variance) with the model complexity. 
-        \subsubsection*{(A.0.b)}
+        \subsubsection*{A.0.b}
             Usually, higher the model complexity, higher the variance, lower the model complexity, higher the bias. 
-        \subsubsection*{(A.0.c)}
+        \subsubsection*{A.0.c}
             False. The bias decreases. Because the bias is: $\mathbb{E}\left[
                 \left(
                 f(x) - \mathbb{E}\left[\hat{f}(x)\right]
                 \right)^2
             \right]$. The number of sample seems to be irrelevant to the amount of bias we have for the model. 
-        \subsubsection*{(A.0.d)}
-            True when we fix the model complexity. This is absolutely true when we consider a linear regression. If we take infinitely many data, the best line-fit will converge. 
-            \\[1em]
-            This is even more true when we just consider taking the average as a way of making prediction (Which is not a bad way to predict the output given $X = x$), then, this is literally the Central limit theorem, as we have more and more samples, the variance of the sample average gets smaller. 
-        \subsubsection*{(A.0.e)}
+        \subsubsection*{A.0.d}
+            True, the model variance decreases as the number of samples increases, when the model complexity is a fixed quantity.  
+            \\
+            The best model is the model that: Minimizes the square loss function of the joint expectation: $\mathbb{E}_{Y|X}\left[(Y - \eta{X})^2\right]$, and notice that because of the square loss function, the solution to the problem is unqiue. And because we are increasing the number of sample to infinite, we approximate the true distribution (the populations) better and better. Therefore, the best estimated model must converge, which means that the variance will decrease. 
+        \subsubsection*{A.0.e}
             Yes, and this is exactly the idea behind regularization, where it tries to change the objective of the optimization problem a bit, allowing the models to use less features and prevent it from over-fitting. This improves the ability for the model to generaize better by reduce the model variance of the model. 
-        \subsubsection*{(A.0.f)}
+        \subsubsection*{A.0.f}
             We should use the train set to tune the hyper-parameters for the models. This is true because the test set is for the final benchmark for our models. 
             \\
             Consider polynomial regression, we can use cross validations (Which only uses the training set) to look for the models with the least amount of variance, or models with the least amount of error or something in between them. 
-        \subsubsection*{(A.0.g)}
-            False. It's an underestimate. This is a conclusion from the lecture. 
+        \subsubsection*{A.0.g}
+            False. It's an underestimate, which is a conclusion from the lecture.
 
 \section*{Maximum Likelihood Estimator(MLE)}
     \subsection*{A.1}
@@ -195,7 +195,7 @@
             \hat{\epsilon}(f) 
         \end{equation*}
     \subsubsection*{A.3.b}
-        $\mathbb{E}_{\text{train}}\left[\hat{\epsilon}_\text{train}(\hat{f})\right]\ne \mathbb{E}\left[\epsilon(\hat{f})\right]$ Consider Linear regression where 2 the sample size is so small ($d - 1$ samples where $d$ is the number of features) that we have a perfect fit model $\hat{f}$ then the bias of the model is going to be zero under the training set, however, the bias over the real distribution is not, because $\mathcal{D}$ could be non-linear and there could be noises, which both will introduce some biased. 
+        $\mathbb{E}_{\text{train}}\left[\hat{\epsilon}_\text{train}(\hat{f})\right]\ne \epsilon(\hat{f})$ Consider Linear regression where the sample size is so small ($d + 1$ samples where $d$ is the number of features) that we have a perfect fit model $\hat{f}$ then the bias of the model is going to be zero under the training set, however, the bias over the real distribution is not, because $\mathcal{D}$ could be non-linear and there could be noises, which both will introduce some biased. 
     \subsubsection*{A.3.c}
         Some explanations are needed for this question. Consider the following expression: 
         \begin{equation*}\tag{A.3.c.1}\label{eqn:A.3.c.1}
@@ -449,21 +449,34 @@ def learningCurve(Xtrain, Ytrain, Xtest, Ytest, reg_lambda, degree):
         \end{align*}
         Note that, next we are taking the derivative of this scalar error function wrt to the weight matrix $W$, which should produce the gradient of the above error function. And the gradient will be a matrix of size $d\times k$, and the solution to gradient zero will be the model that minizes the square loss of the ridge regression. 
         \\
-        We will also make use of the rule that $\nabla [g(AX)] = A^T\nabla[g](AX)$ where $g(X)$ is a $\mathbb{R}^{m\times k}\mapsto \mathbb{R}^{n}$, and the matrix $A\in \mathbb{R}^{m\times n}$. Then the derivative of $g(AX)$ wrt to $X$ will just be the matrix $A^T\nabla[g](X)$. This is true by consider just taking derivative wrt to one of the element for the scalar function:
+        We will also make use of the rule that $\nabla [g(AX)] = A^T\nabla[g](AX)$ where $g(X)$ is a $\mathbb{R}^{m\times k}\mapsto \mathbb{R}^{n}$, and the matrix $A\in \mathbb{R}^{m\times n}$. Then the derivative of $g(AX)$ wrt to $X$ will just be the matrix $A^T\nabla[g](AX)$. This is true by consider just taking derivative wrt to one of the element for the scalar function:
         \begin{align*}\tag{A.6.1.1}\label{eqn:A.6.1.1}
-            &\partial_{X_{i, j}}[g(AX)] 
+            AX &= \underbrace{\sum_{k = 1}^{n}
+                A_{:, k}X_{k, :}}_{\text{Outter Product Interpretation of Matrix Multiplication}}
             \\
-            =& 
-            \nabla_{X_{:, j}}[g(X)]^T\partial_{X_{i, j}}[AX]
+            \implies 
+            &= \nabla_{X_{i, :}}\left[
+                g\left(
+                    \sum_{k = 1}^{n}
+                    A_{:, k}X_{k, :}
+                \right)
+            \right]
             \\
-            =&
-            \partial_{X_{:, j}}[g(X)]^TA_{:, i}
+            &= (\nabla[g](AX))^T\nabla_{X_{i, :}}
+            \left[
+                g\left(
+                    \sum_{k = 1}^{n}
+                    A_{:, k}X_{k, :}
+                \right)
+            \right]
             \\
-            =& 
-            A_{:, j}^T\nabla_{X_{:, j}}[g(X)]^T
+            &= 
+            (\nabla[g](AX))^TA_{:, i}
         \end{align*}
         \\
         Please zoom in and take a look at the subscript carefully, demonstration here make heavy use of subcript to indicate which column vector in the matrix I am taking the derivative wrt. 
+        \\
+        Take note that, we get a column vector from takine the derivative wrt to a row vector in matrix $X$, if I do that for each row of the matrix $X$, and then stack them together, then I will have a new matrix: $A^T\nabla[g](AX)$. I learned automatic differentiation before so I have an idea please believe me. 
         \\
         In addition, take the Frobenius Norm is easy because it's a giant sum of all the entries squared in the matrix, and each weight of the matrix is independent from eaco other, so $\partial_{w_{ij}}[||W||_F^2] = 2w_{ij}$. Using these fact we can take the gradient of the above loss function and get: 
         \begin{align*}\tag{A.6.2}\label{eqn:A.6.2}
@@ -566,4 +579,6 @@ if __name__ == "__main__":
         
 
 
-\end{document}
+\end{document}  
+
+% A.6.1.1 Taking the derivative on a vector wrt to a scalar function could be the jacobiam of the function instead of the gradient. s
