@@ -589,12 +589,15 @@ if __name__ == "__main__":
 					\ge t
 				\right)
 				\le 
+				2
 				\exp\left(
 					-\frac{2m^2t^2}{
 						\sum_{i = 1}^{m}(b_i - a_i)
 					}
 				\right)
 			\end{align*}
+			This is from wikipedia.
+			\\
 			Assume that $X_i$ is the ith random variable draw from a Bernoulli Distribution (Which means that $X_i\in[0, 1]$ so them $a_i = 0, b_i = 1$), representing whether the model has gotten the $i$ th label correctly predicted in the validation set.  And in our case, the cross validations is using $m = 12000$ samples for estimating the errors of the model. 
 			\\
 			With some these information we will be able to say that: 
@@ -607,7 +610,7 @@ if __name__ == "__main__":
 					\ge t
 				\right)
 				\le& 
-				\exp\left(
+				2\exp\left(
 					-\frac{2m^2t^2}{
 						m
 					}
@@ -617,15 +620,15 @@ if __name__ == "__main__":
 				\left(
 					-2mt^2
 				\right)
-				&= 0.95
+				&= 0.95/2
 				\\
-				-2mt^2 &= \ln(0.95)
+				-2mt^2 &= \ln(0.95/2)
 				\\
-				t^2 &= \frac{\ln(0.95)}{-2m}
+				t^2 &= \frac{\ln(0.95/2)}{-2m}
 				\\
-				t &= \sqrt{\frac{\ln(0.95)}{-2m}}
+				t &= \sqrt{\frac{\ln(0.95/2)}{-2m}}
 			\end{align*}
-			Substituting in $m = 12000$ we obtained $t\approx 0.0014619235956373623$, which is about $0.1462\%$ for the error bounds. And hence, comning the results from our code, the 90\% confident interval for the errors rate of our model is about: $7.78\% \pm 0.1462\%$.  
+			
 
 
 
