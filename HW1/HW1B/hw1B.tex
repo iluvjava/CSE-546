@@ -387,6 +387,8 @@ if __name__ == "__main__":
 			\begin{center}
 				\includegraphics[width=10cm]{B2plot.png}
 			\end{center}
+			The best value for $p$ happens when we used $3000$, and in that case, the error rate on the cross validation set is: $0.07773333333333335$. About $7.78\%$. 
+			\\
 			And here is the code I used for this part of the assignment: 
 			\begin{lstlisting}[language=python]
 ### This file constains code for solving HW1 B2 for class CSE 546/446 SPRING 2021.
@@ -532,7 +534,7 @@ def main():
 	def ErrorRate(y1, y2):
 		return sum(y1 != y2)/y1.size
 
-	Pdegreees = arange(400, 3000, 200)
+	Pdegreees = arange(400, 3000 + 1, 200)
 	KfoldTrainErrorRate = []
 	KfoldValidateErrorRate = []
 	for p in Pdegreees:
@@ -579,8 +581,51 @@ if __name__ == "__main__":
 		\subsection*{(b)}
 			The Hoeffding's Inequality is given as the following: 
 			\begin{align*}\tag{B.2.1}\label{eqn:B.2.1}
+				\mathbb{P}\left(
+					\left|
+						\bar{X} - 
+						\mathbb{E}\left[\bar{X}\right]
+					\right|
+					\ge t
+				\right)
+				\le 
+				\exp\left(
+					-\frac{2m^2t^2}{
+						\sum_{i = 1}^{m}(b_i - a_i)
+					}
+				\right)
 			\end{align*}
-			Assume that $X_i$ is the ith random variable draw from a Bernoulli Distribution, representing whether the model has gotten the $i$ th label correctly predicted in the validation set.  
+			Assume that $X_i$ is the ith random variable draw from a Bernoulli Distribution (Which means that $X_i\in[0, 1]$ so them $a_i = 0, b_i = 1$), representing whether the model has gotten the $i$ th label correctly predicted in the validation set.  And in our case, the cross validations is using $m = 12000$ samples for estimating the errors of the model. 
+			\\
+			With some these information we will be able to say that: 
+			\begin{align*}\tag{B.2.2}\label{eqn:B.2.2}
+				\mathbb{P}\left(
+					\left|
+						\bar{X} - 
+						\mathbb{E}\left[\bar{X}\right]
+					\right|
+					\ge t
+				\right)
+				\le& 
+				\exp\left(
+					-\frac{2m^2t^2}{
+						m
+					}
+				\right) = 0.95
+				\\
+				\exp
+				\left(
+					-2mt^2
+				\right)
+				&= 0.95
+				\\
+				-2mt^2 &= \ln(0.95)
+				\\
+				t^2 &= \frac{\ln(0.95)}{-2m}
+				\\
+				t &= \sqrt{\frac{\ln(0.95)}{-2m}}
+			\end{align*}
+			Substituting in $m = 12000$ we obtained $t\approx 0.0014619235956373623$, which is about $0.1462\%$ for the error bounds. And hence, comning the results from our code, the 90\% confident interval for the errors rate of our model is about: $7.78\% \pm 0.1462\%$.  
 
 
 

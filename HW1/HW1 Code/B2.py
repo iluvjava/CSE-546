@@ -141,7 +141,7 @@ def main():
     def ErrorRate(y1, y2):
         return sum(y1 != y2)/y1.size
 
-    Pdegreees = arange(400, 3000, 200)
+    Pdegreees = arange(400, 3000 + 1, 200)
     KfoldTrainErrorRate = []
     KfoldValidateErrorRate = []
     for p in Pdegreees:
