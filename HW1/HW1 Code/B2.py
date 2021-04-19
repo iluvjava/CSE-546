@@ -118,8 +118,6 @@ def TestKfoldGenearate():
 
 def main():
     X1, X2, Y1, Y2 = load_dataset()
-    # Reduce size of the training set for speed, or else it takes too long to run.
-    # training size is 10 000, so then cross set is going to be
     X1 = X1[::1, :]
     Y1 = Y1[::1]
     print(X1.shape) # (60000, 784)

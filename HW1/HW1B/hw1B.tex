@@ -377,15 +377,17 @@ if __name__ == "__main__":
 \section*{Ridge Regression on MNIST}
 	\subsection*{B.2}
 		\subsection*{(a)}
-			For this problem, 10 000 samples are selected from the training set for cross validation, the choice is made to reduce the running time of the program. This means that 8000 samples were used to train a model for 5 times and then 2000 were used to validate the models and get the error. Then the average of those errors are taken to compute the estimated error, the percentage of the labels that the model got wrong. 
+			Training and validations samples are dranwn fomr the MNIST trainig set (60k), and test set is not use. 
 			\\
-			And then, it's trained on $p$ value that goes from $300$ to $3000$ at an increment of $100$, and it's been identified that the best $p$ parameter is $2900$, with an error rate of $14589999999999997$. 
+			5 fold validations are used to estimate the errors for each value of $p$. 
+			\\
+			That means when we train a model, there are 12000 samples used for validations, and 48000 sampless used for validations. We then figure out the bests value for parameter $p$ based on the validations errors. 
 			\\
 			Here is a plot of my results: 
-			\begin{center}\includegraphics[width=10cm]{B2plot.png}\end{center}
-			And we can see that the training error is decreasing relatively fast compare to the cross validation error. 
-			\\
-			And here is the code for generating the graph: 
+			\begin{center}
+				\includegraphics[width=10cm]{B2plot.png}
+			\end{center}
+			And here is the code I used for this part of the assignment: 
 			\begin{lstlisting}[language=python]
 ### This file constains code for solving HW1 B2 for class CSE 546/446 SPRING 2021.
 from mnist import MNIST
@@ -507,10 +509,8 @@ def TestKfoldGenearate():
 
 def main():
 	X1, X2, Y1, Y2 = load_dataset()
-	# Reduce size of the training set for speed, or else it takes too long to run.
-	# training size is 10 000, so then cross set is going to be
-	X1 = X1[::6, :]
-	Y1 = Y1[::6]
+	X1 = X1[::1, :]
+	Y1 = Y1[::1]
 	print(X1.shape) # (60000, 784)
 	print(X2.shape) # (10000, 784)
 	print(Y1.shape) # (60000, )
@@ -532,7 +532,7 @@ def main():
 	def ErrorRate(y1, y2):
 		return sum(y1 != y2)/y1.size
 
-	Pdegreees = arange(300, 3000, 100)
+	Pdegreees = arange(400, 3000, 200)
 	KfoldTrainErrorRate = []
 	KfoldValidateErrorRate = []
 	for p in Pdegreees:
@@ -573,14 +573,15 @@ if __name__ == "__main__":
 	print(f"cwd: {os.getcwd()}")
 	print(f"script running at {os.curdir}")
 	main()
-
+				
 			\end{lstlisting}
+		
 		\subsection*{(b)}
 			The Hoeffding's Inequality is given as the following: 
 			\begin{align*}\tag{B.2.1}\label{eqn:B.2.1}
 			\end{align*}
 			Assume that $X_i$ is the ith random variable draw from a Bernoulli Distribution, representing whether the model has gotten the $i$ th label correctly predicted in the validation set.  
 
-		 
+
 
 \end{document}

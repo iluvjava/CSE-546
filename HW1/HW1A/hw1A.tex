@@ -198,7 +198,7 @@
         $\mathbb{E}_{\text{train}}\left[\hat{\epsilon}_\text{train}(\hat{f})\right]\ne \epsilon(\hat{f})$ Consider Linear regression where the sample size is so small ($d + 1$ samples where $d$ is the number of features) that we have a perfect fit model $\hat{f}$ then the bias of the model is going to be zero under the training set, however, the bias over the real distribution is not, because $\mathcal{D}$ could be non-linear and there could be noises, which both will introduce some biased. 
     \subsubsection*{A.3.c}
         Some explanations are needed for this question. Consider the following expression: 
-        \begin{equation*}\tag{A.3.c.1}\label{eqn:A.3.c.1}
+        \begin{equation*}\tag{A.3.c.1.1}\label{eqn:A.3.c.1.1}
             \mathbb{E}_\text{train} 
             \left[\hat{\epsilon}_\text{train}(\hat{f}_\text{train})\right]
             \le
@@ -280,6 +280,12 @@
         \item[4.] Creating the regularizer as a diagonal matrix, but the bottom right corner of the diagonal matrix is seet to zeero so we don't regularize on the offset for the regression model.  
         \end{enumerate}
         \label{lst:A.5.1}
+        \textbf{NOTE}: for sample size less than 3, I ignore it and didn't override the error np.array that is given. I did this to get the correct scaling on the graph so it looks exactly the same as the graph given by the HW sheet, and I indeed got a graph that looks like what is given non the hW sheet.
+        \\
+        And the graph I got is exactly the same as same as the HW sheet. 
+        \begin{center}
+            \includegraphics[width=10cm]{myplot.png}    
+        \end{center}
         \begin{lstlisting}[language=python]
 '''
     Template for polynomial regression
