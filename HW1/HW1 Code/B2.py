@@ -120,8 +120,8 @@ def main():
     X1, X2, Y1, Y2 = load_dataset()
     # Reduce size of the training set for speed, or else it takes too long to run.
     # training size is 10 000, so then cross set is going to be
-    X1 = X1[::6, :]
-    Y1 = Y1[::6]
+    X1 = X1[::1, :]
+    Y1 = Y1[::1]
     print(X1.shape) # (60000, 784)
     print(X2.shape) # (10000, 784)
     print(Y1.shape) # (60000, )
@@ -143,7 +143,7 @@ def main():
     def ErrorRate(y1, y2):
         return sum(y1 != y2)/y1.size
 
-    Pdegreees = arange(300, 3000, 100)
+    Pdegreees = arange(400, 3000, 200)
     KfoldTrainErrorRate = []
     KfoldValidateErrorRate = []
     for p in Pdegreees:
