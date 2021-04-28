@@ -40,9 +40,58 @@
         \\
         This is made reasonable by consider extreme choices of sample $x_i$ that gives maximal, or minimal value of predictor, and this quantity will be bounded. Hence, the first few descent step will always pull the model into that range. 
     \subsection*{A.0.f}
-        SGD is faster to compute compare to GD because it only uses a few samples but it's less likely to have a clear convergence near the optimal because it's random. 
+        SGD is faster to compute compare to GD becausit only uses a few samples but it's less likely to have a clear convergence near the optimal because it's random. 
     
 
 \section*{A.1: Convexity and Norms}
+    Here is the axioms for norms, let $x, y\in \mathbb{R}^n$, and let $||\bullet||$ be the norm operator, then it must satisfy: 
+    \begin{enumerate}
+    \item[1.] $\Vert x\Vert > 0$
+    \item[2.] $\Vert x + y\Vert \le \Vert x\Vert + \Vert y\Vert$ 
+    \item[3.] $\Vert a x\Vert = |a|\Vert x\Vert$ 
+    \end{enumerate}
+    \subsection*{A.1.a}
+        \textbf{Objective}: Show that $f(x) = \sum_{i = 1}^{n}|x_i|$ is a norm. 
+        \begin{enumerate}
+            \item[1.] It's always positive because: 
+                \begin{align*}\tag{A.1.a.1}\label{eqn:A.1.a.1}
+                    |x_i| &\ge 0 \quad \forall 1 \le i \le n
+                    \\
+                    \sum_{i = 1}^{n} |x_i| &> 0
+                    \\
+                    \Vert x\Vert \ge 0
+                \end{align*}
+            \item[2.] The trianle inequality is always ture. Let's take 2 vectors $x, y \in \mathbb{R}^n$, and for each of their corresponding elements, we can apply the triangule inequality for absolute value, which is: 
+            \begin{align*}\tag{A.1.a.2}\label{eqn:A.1.a.2}
+                |x_i + y_i| \le& |x_i| + |y_i| \quad \forall 1\le i \le n
+                \\
+                \sum_{i = 1}^{n}|x_i + y_i| \le&
+                \sum_{i = 1}^{n} |x_i| + \sum_{i = 1}^{n} |y_i| 
+                \\
+                \Vert x + y\Vert\le \Vert x\Vert + \Vert y \Vert
+            \end{align*} 
+            \item[3.] And the absolute scaler it's like: 
+            \begin{align*}\tag{A.1.a.3}\label{eqn:A.1.a.3}
+                \Vert \alpha x\Vert =&  \sum_{i = 1}^{n} |\alpha x_i|
+                \\
+                =& \sum_{i = 1}^{n}|\alpha||x_i| 
+                \\
+                =& 
+                \alpha|\Vert x\Vert
+            \end{align*}
+        \end{enumerate}
+    \subsection*{A.1.b}
+        Let's consider the case when: 
+        \begin{align*}\tag{A.1.b.1}\label{eqn:A.1.b.1}
+            x = \begin{bmatrix}
+                \frac{1}{9} \\ \frac{1}{9}
+            \end{bmatrix}
+            \quad 
+            y = \begin{bmatrix}
+                \frac{8}{9} \\ \frac{8}{9}
+            \end{bmatrix}
+        \end{align*}
+
+        Then let's compute: 
 
 \end{document}
