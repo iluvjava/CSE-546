@@ -1,0 +1,66 @@
+\documentclass[]{article}
+\usepackage{amsmath}\usepackage{amsfonts}
+\usepackage[margin=1in,footskip=0.25in]{geometry}
+\usepackage{mathtools}
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,
+    urlcolor=cyan,
+}
+\usepackage[final]{graphicx}
+\usepackage{listings}
+\usepackage{courier}
+\lstset{basicstyle=\footnotesize\ttfamily,breaklines=true}
+
+% \usepackage{wrapfig}
+\graphicspath{{.}}
+
+\begin{document}
+\begin{center}
+    Name: Hongda Li \quad Class: CSE 546 \quad HW2B
+\end{center}
+\section*{B.1}
+    \textbf{Objective}: Given the definition for the L2, L1 and the Infinity norm of real vector, show that $\Vert x\Vert_\infty \le \Vert x\Vert_2 \le \Vert x\Vert_1$. 
+    \\
+    First we are going to show that $\Vert x\Vert_2^2 \le \Vert x\Vert_1^2$, starting from the definition of the norms we have: 
+    \begin{align*}\tag{B.1.1}\label{eqn:B.1.1}
+        \Vert x\Vert_1^2 &= 
+            \left(
+                \sum_{i = 1}^{n} |x_i|
+            \right)^2
+        \\ 
+        &= \sum_{i = 1}^{n}
+            \left(
+                |x_i|\sum_{j = 1}^{n}
+                    |x_j|
+            \right)
+        \\
+        &= 
+        \sum_{i = 1}^{n}
+            \left(
+                |x_i|^2 + 
+                |x_i|\sum_{j = 1, j \ne i}^{n}
+                    |x_j|
+            \right)
+        \\
+        &= 
+        \sum_{i = 1}^{n} |x_i|^2 + \sum_{i = 1}^{n}|x_i|\left(
+            \sum_{ j= 1,j \ne i }^{n}
+                |x_j|
+        \right)
+        \\
+        &= 
+        \Vert x\Vert_2^2 + \underbrace{\sum_{i = 2}^{n}\sum_{j = 1}^{i - 1}2|x_i||x_j|}_{\ge 0}
+        \\
+        &\implies \Vert x\Vert_2^2 \le \Vert x\Vert_1^2
+    \end{align*}
+    And now we are going to shoe that $\Vert x\Vert_\infty^2 \le \Vert x\Vert_2^2$. By the definition of the infinity norm, we know that therde exists $1\le m \le n$ such that $x_m = \Vert x\Vert_\infty = \max_{1\le i\le n}(x_i)$. Then it can be said that: 
+    \begin{align*}\tag{B.1.2}\label{eqn:B.1.2}
+        x_m^2 \le& x_m^2 + \underbrace{\sum_{i = 1, i\ne m}^{n} x_i^2}_{\ge 0}
+        \\
+        x_m^2 =& \Vert x\Vert_\infty \le \sum_{i = 1}^{n}x_i^2 = \Vert x\Vert_2^2
+    \end{align*}
+    And then combing together, we can take the square root because the function $\sqrt{\bullet}$ is monotone increase, hence it preserves the inequality, which will give us $\Vert x\Vert_\infty \le \Vert x\Vert_2^2\le \Vert x\Vert_1$. 
+\end{document}
