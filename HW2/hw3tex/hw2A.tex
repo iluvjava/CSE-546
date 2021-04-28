@@ -91,7 +91,31 @@
                 \frac{8}{9} \\ \frac{8}{9}
             \end{bmatrix}
         \end{align*}
-
         Then let's compute: 
+        \begin{align*}\tag{A.1.b.2}\label{eqn:A.1.b.2}
+            x + y =& \begin{bmatrix}
+            1 \\ 1
+            \end{bmatrix}
+            \\
+            \implies 
+            \Vert x + y\Vert =& 1 +1 = 2        
+        \end{align*}
+        However: 
+        \begin{align*}\tag{A.1.b.3}\label{eqn:A.1.b.3}
+            \Vert x\Vert & = \times \left(
+                \frac{2}{\sqrt{9}}
+            \right)^{2} = \frac{4}{9}
+            \\
+            \Vert y\Vert &= \left(
+                2\times\frac{2 \sqrt{2}}{3}
+            \right)^2 = \left(
+                \frac{4 \sqrt{2}}{2}
+            \right)^2
+            \\
+            &= \frac{8}{81}
+            \\
+            \Vert x\Vert + \Vert y\Vert = \frac{44}{81} < 2 = \Vert x + y\Vert
+        \end{align*}
+        This is a contradiction, therefore this cannot be a way of computing norm. 
 
 \end{document}
