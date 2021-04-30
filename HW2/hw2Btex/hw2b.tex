@@ -64,7 +64,7 @@
     \end{align*}
     And then combing together, we can take the square root because the function $\sqrt{\bullet}$ is monotone increase, hence it preserves the inequality, which will give us $\Vert x\Vert_\infty \le \Vert x\Vert_2^2\le \Vert x\Vert_1$.
 \section*{B.2}
-    \subsection*{B.2.a}
+    \subsection*{B.2.a}\label{B.2.a}
         \textbf{Objective}: The function $\Vert x\Vert$ is a convex function. 
         \begin{align*}\tag{B.2.a.1}\label{eqn:B.2.a.1}
             \Vert \lambda x + (1 - \lambda)y \Vert 
@@ -84,6 +84,45 @@
             \\
             \implies \lambda x + (1 - \lambda)y &\in S
         \end{align*}
-        The first by the inequality of norm, and the second is by the definition of the fact that $x,y \in S$, and the third is by the definition of the set. 
+        The first by the inequality of norm, and the second is by the definition of the fact that $x,y \in S$, and the third is by the definition of the set $S$.
+    \subsection*{B.2.c}
+        The set $ \{(x_1, x_2): g(x_1, x_2) \le 4\}$ domain of the function such that the value of the function is bounded by a given quantity. This is the unit norm ball defined by $p = \frac{1}{2}$. As we showned in lecture, it's not convex, and it looks like a star\footnote{Drawn by mathematica. }:  
+        \begin{center}
+            \includegraphics[width=10cm]{b2-norm-ball.png} 
+        \end{center}
+    
+\section*{B.3}  
+    \subsection*{B.3.a}
+        \textbf{Objective}: Showing that, the squared loss function regularized with Eclidean norm (not squared) is convex. The trick is to show that, the squared loss function is convex, and we have shown the the Euclidean norm is convex back in \hyperref[B.2.a]{B.2.a}. And by showing that the positive weighted sum of 2 convex function is convex, we will be able to show that it's convex. 
+        \\
+        The loss function is convex because: $l_i(w) = (y_i - w^Tx_i)^2$, this function is qaudratic, and it's second derivative is $\text{diag}(2)$ (The hessian fof the function wrt to $w$), which is a positive quantity. When the second derivative of a function is always larger than or equals to zero, the function is convex. 
+        \\
+        Here, we will show that the sum of 2 convex function is convex too. Let $f(x), g(x)$ be 2 convex function mapping $x\in \mathbb{R}^n$ to $\mathbb{R}$. Choose any 2 points $x, y\in \mathbb{R}^n$ then we have: 
+        \begin{align*}\tag{B.3.a.1}\label{eqn:B.3.a.1}
+            f(\lambda x + (1 - \lambda)y) \le& \lambda f(x) + (1 - \lambda)f(y) 
+            \\
+            & \wedge
+            \\
+            g(\lambda x + (1 - \lambda)y) \le& \lambda g(x) + (1 - \lambda)g(y) 
+            \\
+            \implies 
+            f(\lambda x + (1 - \lambda)y) + g(\lambda x + (1 - \lambda)y)
+            &\le \lambda f(x) + (1 - \lambda)f(y) +  \lambda g(x) + (1 - \lambda)g(y) 
+            \\
+            f(\lambda x + (1 - \lambda)y) + g(\lambda x + (1 - \lambda)y)
+            &\le
+            \lambda (f(x) + g(x)) + (1 - \lambda) (f(x) + g(x))
+        \end{align*}
+    It's not hatd to see that, if we set $h(x) := g(x) + h(x)$ then the last line of the statement will be the convexity of $h(x)$, proving the that sume of the 2 functions are still convex. 
+    \\
+    \textbf{Note}: If the sum 2 functions are still convex, then \textbf{the sum finite many function is still going to be convex}, this can be proved inductively, because the $+$ sign is associatitve.  
+    \\
+    Using this, and using the fact that $\sum_{i = 1}^{n} l_i(w) + \lambda\Vert w\Vert$ is convex, because all the function we are summing up are convex function.
+    \subsection*{B.2.b}
+        Convex loss function is easier to optimize, it has minimal, and it's a convex set of minimal as well. And the use of a \textbf{strictly convex regularizer} will give \textbf{unique global optimal}, the strongly convex loss function is the best, because gradient descent performs really well on them. 
+\section*{B.4: Multinomial Logistic Regression}
+
+\section*{B.5: Confidence Interval of Least Squares Estimation: Bounding Estimate}
+
 
 \end{document}
