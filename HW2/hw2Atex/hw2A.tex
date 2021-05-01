@@ -375,6 +375,8 @@ if __name__ == "__main__":
         $$
             x_i \sim \mathbf{N}(0, 1)
         $$
+        This is used because it's already standardized. I hope it works well for the purpose of the HW. 
+        \\
         Reduction ratio used for lambda is: $1/1.1$
         \begin{center}
             \includegraphics[width=10cm]{A4a-plot.png}
@@ -389,11 +391,52 @@ if __name__ == "__main__":
         The quantity of FDR doesn't drops to zero as the number of non-zeros terms just went over k, but it drops as we increase regularization. 
         \\
         Unfortunately, the TPR got dropped as we increase lambda as well. 
-        
+        \\
+        \textbf{Note}: There are some amount of variance between different runs of the code, but the trend on the graph is mostly the same. 
 
 \section*{A.5}
-\section*{A.4}
+    \subsection*{A.5.a}
+        \textbf{Objective}:List 3 features from the dataset that can be affected by historical policies choices. Most of the features are about populations, with a standardized measurements. 
+        \\
+        \begin{enumerate}
+            \item[1.] There is a cluster of immigrations related features: 
+                \begin{lstlisting}
+    -- PctImmigRecent: percentage of _immigrants_ who immigated within last 3 years (numeric - decimal)
+    -- PctImmigRec5: percentage of _immigrants_ who immigated within last 5 years (numeric - decimal)
+    -- PctImmigRec8: percentage of _immigrants_ who immigated within last 8 years (numeric - decimal)
+    -- PctImmigRec10: percentage of _immigrants_ who immigated within last 10 years (numeric - decimal)
+    -- PctRecentImmig: percent of _population_ who have immigrated within the last 3 years (numeric - decimal)
+    -- PctRecImmig5: percent of _population_ who have immigrated within the last 5 years (numeric - decimal)
+    -- PctRecImmig8: percent of _population_ who have immigrated within the last 8 years (numeric - decimal)
+    -- PctRecImmig10: percent of _population_ who have immigrated within the last 10 years (numeric - decimal)
+                \end{lstlisting}
+                These are determined by Federal Policies. 
+            \item[2.] There is another cluster of police department related stats. 
+            \begin{lstlisting}
+-- PolicBudgPerPop: police operating budget per population (numeric - decimal)
+            \end{lstlisting}
+            which are dependendent on the state policies. 
+        \end{enumerate}
+        These 2 clusters of features are related to Federal and State Policies, which will introduce veriability across time, and space. There are a third cluster, which are related on household income of different demographics, but I am not sure how relavent they are. 
+    \subsection*{A.4.b}
+        Homeless, educatons, and poverty might be the reasons. And there are several clusters of features for these board categories.
+        \begin{enumerate}
+            \item[1.] \begin{lstlisting}
+-- NumUnderPov: number of people under the poverty level (numeric - decimal)
+-- PctPopUnderPov: percentage of people under the poverty level (numeric - decimal)
+            \end{lstlisting}
+            \item[2.]
+            \begin{lstlisting}
+-- NumInShelters: number of people in homeless shelters (numeric - decimal)
+-- NumStreet: number of homeless people counted in the street (numeric - decimal)
+            \end{lstlisting} 
+            \item[3.]
+            \begin{lstlisting}
+-- PctLess9thGrade: percentage of people 25 and over with less than a 9th grade education (numeric - decimal)
+            \end{lstlisting} 
+        \end{enumerate}
     
+        
 \section*{A.6}
     
 

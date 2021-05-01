@@ -193,10 +193,6 @@ def A4a_b():
     show()
 
 
-
-
-
-
 def main():
     def SimpleTest():
         N, d = 40, 4
