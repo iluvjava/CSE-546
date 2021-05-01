@@ -45,7 +45,7 @@ class LassoRegression:
         this.Lambda = regularization_lambda
         this.Verbose = verbose
         this.Delta = delta
-        this._w = None
+        this._weights = None
         this._b = None
 
     def fit(this, X, y):
@@ -69,9 +69,10 @@ class LassoRegression:
         n, d   = X.shape[0], X.shape[1]
         y2d    = y[:, np.newaxis]
         deltaW = this.Delta*ones((d, 1))*1.1                   # Amount of changes for each predictor while iterating
-        w      = zeros((d, 1)) if this._w is None else this._w # !!! Use previous for optimization if model is
+        w      = zeros((d, 1)) if (this._weights is None) else this._weights.copy()
+                                                               # !!! Use previous for optimization if model is
                                                                # asked to optimize for a second time.
-        l = this.Lambda                                        # Regularizer
+        l = this.Lambda                                        # Regularizer !!!
         Itr = 0
         while norm(deltaW, inf) > this.Delta and Itr < MaxItr:
             Itr += 1
@@ -88,7 +89,8 @@ class LassoRegression:
                 w_k       = 0 if (abs(c_k) < l) else (c_k - sign(c_k)*l)/a_k
                 deltaW[k, ...] = abs(w_k - w[k, ...])
                 w[k]      = w_k
-                this._print(f"optimizing on w_{k}, get w_{k} = {w[k]}")
+            this._print(f"delta w is: {deltaW.reshape(-1)}")
+            this._print(f"lambda is: {this.Lambda}")
         if MaxItr == Itr: raise Exception("Coordinate descent Max Itr reached without converging")
         this._weights = w
         this._b = b
@@ -96,14 +98,14 @@ class LassoRegression:
 
 
     @property
-    def w(this):
+    def w(this):   # get the weights of the model.
         return this._weights.copy()
 
     @property
-    def b(this):
+    def b(this):   # Get the offset of the model.
         return this._b.copy()
 
-    def _print(this, mesg):
+    def _print(this, mesg):  # print out the message if in verbose mode.
         if this.Verbose: print(mesg)
 
 

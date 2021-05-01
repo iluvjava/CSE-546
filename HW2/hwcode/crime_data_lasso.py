@@ -41,6 +41,9 @@ def A5PlotsAndShow():
         FlagCur = Lambda < 0.01  # Last one!
         if Model is None:
             Model = LassoRegression(regularization_lambda=Lambda)
+        else:
+            Model.Lambda = Lambda
+
         Model.fit(Xtrain, Ytrain)
         Ws.append(Model.w)
         Lambdas.append(Lambda)
@@ -51,15 +54,8 @@ def A5PlotsAndShow():
     plt.savefig("A5a-plot.png")
     plt.show()
 
-
-
-
-
-
 def main():
     A5PlotsAndShow()
-
-
 
 
 if __name__ == "__main__":
