@@ -69,8 +69,8 @@ class LassoRegression:
         n, d = X.shape[0], X.shape[1]
         y2d = y[:, np.newaxis]
         deltaW = this.Delta*ones((n, 1))*1.1
-        # Use previous for optimization if model is asked to optimize for a second time.
-        w = zeros((d, 1)) if this._w is None else this.w
+        # !!! Use previous for optimization if model is asked to optimize for a second time.
+        w = zeros((d, 1)) if this._w is None else this._w
         l = this.Lambda
         Itr = 0
         while norm(deltaW, inf) > this.Delta and Itr < MaxItr:
