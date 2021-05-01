@@ -5,6 +5,7 @@
 
 from lasso import LassoRegression, np, LassoLambdaMax
 import pandas as pd
+import matplotlib.pyplot as plt
 
 
 def PrepareData():
@@ -28,7 +29,6 @@ def PrepareData():
 def A5PlotsAndShow():
     print("summary on the data: ")
     Xtrain, Xtest, Ytrain, Ytest = PrepareData()
-
     LambdaMax = LassoLambdaMax(Xtrain, Ytrain)
     Lambda = LambdaMax                  # Results
     Lambdas = []                        # Results
@@ -46,7 +46,10 @@ def A5PlotsAndShow():
         Lambdas.append(Lambda)
         Lambda /= 2
     NoneZerosCount = [sum(_ != 0) for _ in Ws]
-    
+    plt.plot(Lambdas, NoneZerosCount)
+    plt.xscale("log")
+    plt.savefig("A5a-plot.png")
+    plt.show()
 
 
 

@@ -66,30 +66,28 @@ class LassoRegression:
         assert X.shape[0] == y.shape[0], \
             "The number of rows of X must equal to the number elements in y. "
         MaxItr = 10000
-        n, d = X.shape[0], X.shape[1]
-        y2d = y[:, np.newaxis]
-        deltaW = this.Delta*ones((n, 1))*1.1
-        # !!! Use previous for optimization if model is asked to optimize for a second time.
-        w = zeros((d, 1)) if this._w is None else this._w
-        l = this.Lambda
+        n, d   = X.shape[0], X.shape[1]
+        y2d    = y[:, np.newaxis]
+        deltaW = this.Delta*ones((d, 1))*1.1                   # Amount of changes for each predictor while iterating
+        w      = zeros((d, 1)) if this._w is None else this._w # !!! Use previous for optimization if model is
+                                                               # asked to optimize for a second time.
+        l = this.Lambda                                        # Regularizer
         Itr = 0
         while norm(deltaW, inf) > this.Delta and Itr < MaxItr:
             Itr += 1
-            # compute offset vector.
-            b = mean(y2d - X@w)
-            # Compuate all the k at once, because it's not related to w_k
-            a = 2*sum(X**2, axis=0)
+            b    = mean(y2d - X@w)     # compute offset vector.
+            a    = 2*sum(X**2, axis=0) # Compuate all the k at once, because it's not related to w_k
             for k in range(d):
-                a_k = a[k]
+                a_k     = a[k]
                 Indices = [J for J in range(d) if J != k]
-                c_k = 2*sum(
-                    X[::, [k]]
-                    *
-                    (y2d - (b + X[:, Indices]@w[Indices]))
-                )
-                w_k = 0 if (abs(c_k) < l) else (c_k - sign(c_k)*l)/a_k
-                deltaW = abs(w_k - w[k])
-                w[k] = w_k
+                c_k     = 2*sum(
+                                X[::, [k]]
+                                *
+                                (y2d - (b + X[:, Indices]@w[Indices]))
+                            )
+                w_k       = 0 if (abs(c_k) < l) else (c_k - sign(c_k)*l)/a_k
+                deltaW[k, ...] = abs(w_k - w[k, ...])
+                w[k]      = w_k
                 this._print(f"optimizing on w_{k}, get w_{k} = {w[k]}")
         if MaxItr == Itr: raise Exception("Coordinate descent Max Itr reached without converging")
         this._weights = w
