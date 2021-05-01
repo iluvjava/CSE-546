@@ -27,6 +27,7 @@ show = plt.show
 title = plt.title
 xlabel = plt.xlabel
 ylabel = plt.ylabel
+legend = plt.legend
 
 class LassoRegression:
 
@@ -162,13 +163,29 @@ def A4a_b():
     ylabel("Non Zeroes $w_j$")
     title("A4: Nonezeros $W_j$ vs Lambda for Lasso")
     show()
+
     # Part (b)
     # The first k elements in Wtrue is always going to be non-zeroes.
     # FDR: (Incorrect Nonzeroes in w_hat)/(total number of nonzeroes in w_hat)
     # TPR: (# of correct non-zeroes in w_har)/(k)
-    
 
-
+    WTrueNonZeroes = Wtrue != 0
+    FDR = []
+    TPR = []
+    Lambdas = [_[0] for _ in Lfc]
+    for WHat in Ws:
+        WHatNonZeros = WHat != 0
+        if sum(WHatNonZeros) == 0:
+            Lambdas.pop(0)
+            continue
+        FDR.append(sum(WHatNonZeros * ~WTrueNonZeroes)/sum(WHatNonZeros))
+        TPR.append(sum(WHatNonZeros*(WHatNonZeros == WTrueNonZeroes))/k)
+    plot(Lambdas, FDR)
+    plot(Lambdas, TPR)
+    title("FDR vs TPR")
+    xlabel("$\lambda$")
+    legend(["FDR", "TPR"])
+    show()
 
 
 
@@ -200,7 +217,7 @@ def main():
         Model.fit(X, y)
         print(Model.w)
         print(Model.b)
-    A4a()
+    A4a_b()
 
 
 if __name__ == "__main__":
