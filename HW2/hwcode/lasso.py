@@ -28,6 +28,7 @@ title = plt.title
 xlabel = plt.xlabel
 ylabel = plt.ylabel
 legend = plt.legend
+saveas = plt.savefig
 
 class LassoRegression:
 
@@ -163,6 +164,8 @@ def A4a_b():
     ylabel("Non Zeroes $w_j$")
     title("A4: Nonezeros $W_j$ vs Lambda for Lasso")
     show()
+    saveas("A4a-plot.png", format="png")
+
 
     # Part (b)
     # The first k elements in Wtrue is always going to be non-zeroes.
@@ -184,8 +187,10 @@ def A4a_b():
     plot(Lambdas, TPR)
     title("FDR vs TPR")
     xlabel("$\lambda$")
+    xscale("log")
     legend(["FDR", "TPR"])
     show()
+    saveas("A4b-plot.png", format="png")
 
 
 
