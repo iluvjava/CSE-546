@@ -163,8 +163,8 @@ def A4a_b():
     xlabel(f"$\log{{\lambda}}$, reduction ratio: {r}")
     ylabel("Non Zeroes $w_j$")
     title("A4: Nonezeros $W_j$ vs Lambda for Lasso")
+    plt.savefig("A4a-plot.png")
     show()
-    saveas("A4a-plot.png", format="png")
 
 
     # Part (b)
@@ -182,15 +182,16 @@ def A4a_b():
             Lambdas.pop(0)
             continue
         FDR.append(sum(WHatNonZeros * ~WTrueNonZeroes)/sum(WHatNonZeros))
-        TPR.append(sum(WHatNonZeros*(WHatNonZeros == WTrueNonZeroes))/k)
+        TPR.append(sum(WHatNonZeros[:100])/k)
     plot(Lambdas, FDR)
     plot(Lambdas, TPR)
     title("FDR vs TPR")
     xlabel("$\lambda$")
     xscale("log")
     legend(["FDR", "TPR"])
+    plt.savefig("A4b-plot.png")
     show()
-    saveas("A4b-plot.png", format="png")
+
 
 
 
