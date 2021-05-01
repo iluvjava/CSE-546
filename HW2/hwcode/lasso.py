@@ -18,21 +18,45 @@ abs = np.abs
 sign = np.sign
 ones = np.ones
 max = np.max
+randn = np.random.randn
+
+import matplotlib.pyplot as plt
+plot = plt.plot
+xscale = plt.xscale
+show = plt.show
+title = plt.title
+xlabel = plt.xlabel
+ylabel = plt.ylabel
 
 class LassoRegression:
 
-    def __init__(this, regularization_lambda, delta=1e-5, verbose=False):
+    def __init__(this, regularization_lambda, delta=1e-6, verbose=False):
         """
             create an instance of Lasso fit
         :param regularization_lambda:
-        :param deltaw:
+            The lambda for L2 norm
+        :param delta:
+            The tolerance for measuring the convergence of the w parameter for coordinate descend.
         :param verbose:
+            Whether to print out all the message when doing the coordinate descned.
         """
         this.Lambda = regularization_lambda
         this.Verbose = verbose
-        this.Delta = 1e-5
+        this.Delta = delta
+        this._w = None
+        this._b = None
 
     def fit(this, X, y):
+        """
+            Fit that data.
+            NOTE: Data standardization is not used.
+        :param X:
+            Row data matrix. Should be n by d where n is the number of samples and d is the number of features.
+        :param y:
+            Label vector, strictly on dimensional.
+        :return:
+            This model.
+        """
         assert type(X) is np.ndarray and type(y) is np.ndarray, \
             "Must use numpy array to train the lasso."
         assert len(X.shape) == 2 and len(y.shape) == 1, \
@@ -43,7 +67,8 @@ class LassoRegression:
         n, d = X.shape[0], X.shape[1]
         y2d = y[:, np.newaxis]
         deltaW = this.Delta*ones((n, 1))*1.1
-        w = zeros((d, 1))
+        # Use previous for optimization if model is asked to optimize for a second time.
+        w = zeros((d, 1)) if this._w is None else this.w
         l = this.Lambda
         Itr = 0
         while norm(deltaW, inf) > this.Delta and Itr < MaxItr:
@@ -67,6 +92,7 @@ class LassoRegression:
         if MaxItr == Itr: raise Exception("Coordinate descent Max Itr reached without converging")
         this._weights = w
         this._b = b
+        return this
 
 
     @property
@@ -102,8 +128,50 @@ def LassoLambdaMax(X, y):
     return max(2*abs(X.T@(y - mean(y))))
 
 
-def GetLassoSyntheticTestdata(n, d, k):
-    pass
+def GetLassoSyntheticTestdata(n:int, d:int, k:int, sigma=1):
+    assert (n > 0) and (d > 0) and (k > 0), "n, d, k all have to be larger than zeros"
+    assert k < n, "k has to be < n"
+    WTruth = array([JJ/k if JJ <= k else 0 for JJ in range(1, d + 1)], dtype=np.float)[:, np.newaxis]
+    Noise = np.random.randn(n, 1)*sigma
+    X = randn(n, d) # std normal for best stability of the coordinate descend algorithm.
+    return X, (X@WTruth + Noise).reshape(-1), WTruth
+
+
+def A4a_b():
+
+    # Part (a)
+    n, d, k = 500, 1000, 100
+    X, y, Wtrue = GetLassoSyntheticTestdata(n, d, k)
+    LambdaMax = LassoLambdaMax(X, y)
+    Ws = []
+    # Feature Chosen for each lambda
+    Lfc = [] # lambda and features count
+    Lambda = LambdaMax
+    r = 1.1
+    while len(Lfc) == 0 or Lfc[-1][1] < k:
+        Model = LassoRegression(regularization_lambda=Lambda)
+        Model.fit(X, y)
+        NonZeros = sum(Model.w != 0)
+        Ws.append(Model.w)
+        print(f"NonZeros: {NonZeros}")
+        Lfc.append((Lambda, NonZeros))
+        Lambda /= r
+    plot([_[0] for _ in Lfc], [_[1] for _ in Lfc], "ko")
+    xscale("log")
+    xlabel(f"$\log{{\lambda}}$, reduction ratio: {r}")
+    ylabel("Non Zeroes $w_j$")
+    title("A4: Nonezeros $W_j$ vs Lambda for Lasso")
+    show()
+    # Part (b)
+    # The first k elements in Wtrue is always going to be non-zeroes.
+    # FDR: (Incorrect Nonzeroes in w_hat)/(total number of nonzeroes in w_hat)
+    # TPR: (# of correct non-zeroes in w_har)/(k)
+    
+
+
+
+
+
 
 
 def main():
@@ -132,7 +200,7 @@ def main():
         Model.fit(X, y)
         print(Model.w)
         print(Model.b)
-    SimpleTest()
+    A4a()
 
 
 if __name__ == "__main__":
