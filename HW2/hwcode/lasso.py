@@ -32,7 +32,7 @@ saveas = plt.savefig
 
 class LassoRegression:
 
-    def __init__(this, regularization_lambda, delta=1e-6, verbose=False):
+    def __init__(this, regularization_lambda, delta=1e-4, verbose=False):
         """
             create an instance of Lasso fit
         :param regularization_lambda:
@@ -96,6 +96,12 @@ class LassoRegression:
         this._b = b
         return this
 
+    def predict(this, X):
+        if this.w is None:
+            raise Exception("Can't predict on a lasso that is not trained yet")
+        d = this.w.shape[0]
+        assert d == X.shape[1], "The number of features used to predict doesn't match with what is trained on "
+        return X@this.w + this.b
 
     @property
     def w(this):   # get the weights of the model.
@@ -160,7 +166,7 @@ def A4a_b():
         Lambda /= r
     plot([_[0] for _ in Lfc], [_[1] for _ in Lfc], "ko")
     xscale("log")
-    xlabel(f"$\log{{\lambda}}$, reduction ratio: {r}")
+    xlabel(f"$\lambda$, reduction ratio: {r}")
     ylabel("Non Zeroes $w_j$")
     title("A4: Nonezeros $W_j$ vs Lambda for Lasso")
     plt.savefig("A4a-plot.png")

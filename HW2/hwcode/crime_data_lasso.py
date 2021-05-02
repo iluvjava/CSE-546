@@ -19,40 +19,68 @@ def PrepareData():
         print("Labels set summary")
         print(df["ViolentCrimesPerPop"])
         print("features are already standardized. ")
-        return X, y
-
-    Xtrain, Ytrain = ReadAndGet("crime-train.txt")
-    Xtest, Ytest = ReadAndGet("crime-test.txt")
-    return Xtrain, Xtest, Ytrain, Ytest
+        return X, y, df
+    Xtrain, Ytrain, TrainDf = ReadAndGet("crime-train.txt")
+    Xtest, Ytest, TestDf = ReadAndGet("crime-test.txt")
+    return Xtrain, Xtest, Ytrain, Ytest, TrainDf, TestDf
 
 
 def A5PlotsAndShow():
     print("summary on the data: ")
-    Xtrain, Xtest, Ytrain, Ytest = PrepareData()
-    LambdaMax = LassoLambdaMax(Xtrain, Ytrain)
-    Lambda = LambdaMax                  # Results
-    Lambdas = []                        # Results
-    Ws = []                             # Predictors list
-    Model = None                        # The model
-    FlagPre, FlagCur = False, False     # whether lambda is < 0.01
-    while (FlagPre) or (not FlagCur):   # not the case that Preivious is > 0.01, current is < 0.01
-        print(f"Using Lambda: {Lambda}")
-        FlagPre = FlagCur
-        FlagCur = Lambda < 0.01  # Last one!
-        if Model is None:
-            Model = LassoRegression(regularization_lambda=Lambda)
-        else:
-            Model.Lambda = Lambda
+    Xtrain, Xtest, Ytrain, Ytest, TrainDf, TestDf = PrepareData()
+    def A5c():
+        print(f"{'='*10} Running A5(c), lambda non zeros count {'='*10}")
+        LambdaMax = LassoLambdaMax(Xtrain, Ytrain)
+        Lambda = LambdaMax                  # Results
+        Lambdas = []                        # Results
+        Ws = []                             # Predictors list
+        Model = None                        # The model
+        FlagPre, FlagCur = False, False     # whether lambda is < 0.01
+        while (FlagPre) or (not FlagCur):   # not the case that Preivious is > 0.01, current is < 0.01
+            print(f"Using Lambda: {Lambda}")
+            FlagPre = FlagCur
+            FlagCur = Lambda < 0.01         # Last one!
+            if Model is None:
+                Model = LassoRegression(regularization_lambda=Lambda)
+            else:
+                Model.Lambda = Lambda
+            Model.fit(Xtrain, Ytrain)
+            Ws.append(Model.w)
+            Lambdas.append(Lambda)
+            Lambda /= 2
+        NoneZerosCount = [sum(_ != 0) for _ in Ws]
+        plt.plot(Lambdas, NoneZerosCount)
+        plt.xscale("log")
+        plt.title("Crime Data non-zeros lasso")
+        plt.xlabel("$\\lambda$")
+        plt.ylabel("# of Non zeros in $\hat{w}$")
+        plt.savefig("A5a-plot.png")
+        plt.show()
+        return Ws, Lambdas
+    Ws, Lambdas = A5c()
 
-        Model.fit(Xtrain, Ytrain)
-        Ws.append(Model.w)
-        Lambdas.append(Lambda)
-        Lambda /= 2
-    NoneZerosCount = [sum(_ != 0) for _ in Ws]
-    plt.plot(Lambdas, NoneZerosCount)
-    plt.xscale("log")
-    plt.savefig("A5a-plot.png")
-    plt.show()
+    def A5d():
+        # Features to pick up: agePct12t29,pctWSocSec,pctUrban,agePct65up
+        Features = ["agePct12t29","pctWSocSec","pctUrban","agePct65up"]
+        FeaturesIndices = []
+        for II, Feature in enumerate(TrainDf.columns):
+            if Feature in Features: FeaturesIndices.append(II)
+        FeaturesLassoPath = np.array([w[FeaturesIndices, ...] for w in Ws])
+        for II, Feature in enumerate(TrainDf.columns):
+            plt.plot(Lambdas, FeaturesLassoPath[:, II])
+        plt.legend(Features)
+        plt.xlabel("$\\lambda$")
+        plt.ylabel("$value of $\\hat{w_j}$")
+        plt.title("Lasso Regulrization Path")
+        plt.savefig("A5d-plot.png")
+        plt.show()
+    A5d()
+
+    def A5e():
+        pass
+    A5d()
+
+
 
 def main():
     A5PlotsAndShow()
