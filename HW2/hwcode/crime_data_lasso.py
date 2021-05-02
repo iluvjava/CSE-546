@@ -65,21 +65,48 @@ def A5PlotsAndShow():
         FeaturesIndices = []
         for II, Feature in enumerate(TrainDf.columns):
             if Feature in Features: FeaturesIndices.append(II)
-        FeaturesLassoPath = np.array([w[FeaturesIndices, ...] for w in Ws])
-        for II, Feature in enumerate(TrainDf.columns):
+        FeaturesLassoPath = np.array([w[FeaturesIndices, ...].reshape(-1) for w in Ws])
+        for II in range(4):
             plt.plot(Lambdas, FeaturesLassoPath[:, II])
         plt.legend(Features)
         plt.xlabel("$\\lambda$")
         plt.ylabel("$value of $\\hat{w_j}$")
+        plt.xscale("log")
         plt.title("Lasso Regulrization Path")
         plt.savefig("A5d-plot.png")
         plt.show()
     A5d()
 
     def A5e():
-        pass
-    A5d()
+        print(f"{'='*10} Running A5(e), plotting the Squared Errors {'='*10}")
+        X = Xtest[np.newaxis, ...]
+        y = Ytest[np.newaxis, ...]
+        y = y[..., np.newaxis]                         # 1 x n x 1
+        Ws_local = np.array(Ws) # 1 x d x m
+        SquareLoss = np.mean((X @ Ws_local - y) ** 2, axis=1).reshape(-1)
+        plt.plot(Lambdas, SquareLoss)
+        plt.title("Square Loss for different $\\lambda$ on Test set")
+        plt.xlabel("$\\lambda$")
+        plt.ylabel("Square Loss")
+        plt.xscale("log")
+        plt.savefig("A5e-plot.png")
+        plt.show()
 
+    A5e()
+
+    def A5f():
+        print(f"{'='*10} Max, mean Model Parameters {'='*10}")
+        Lambda = 30
+        Model  = LassoRegression(regularization_lambda=Lambda)
+        Model.fit(Xtrain, Ytrain)
+        w = Model.w
+        WLargestIndx = np.argmax(w)
+        WSmallestIdx = np.argmin(w)
+        print(f"Features with the largest Lasso Coefficient is: {TrainDf.columns[WLargestIndx]}")
+        print(f"Features with the smallest Lasso Coefficient is: {TrainDf.columns[WSmallestIdx]}")
+        print(f"The largest value is: {w[WLargestIndx, ...]}")
+        print(f"The smallest value is: {w[WSmallestIdx, ...]}")
+    A5f()
 
 
 def main():
