@@ -79,16 +79,20 @@ def A5PlotsAndShow():
 
     def A5e():
         print(f"{'='*10} Running A5(e), plotting the Squared Errors {'='*10}")
-        X = Xtest[np.newaxis, ...]
-        y = Ytest[np.newaxis, ...]
-        y = y[..., np.newaxis]                         # 1 x n x 1
-        Ws_local = np.array(Ws) # 1 x d x m
-        SquareLoss = np.mean((X @ Ws_local - y) ** 2, axis=1).reshape(-1)
-        plt.plot(Lambdas, SquareLoss)
+        def SquareLoss(Data, Labels):
+            X = Data[np.newaxis, ...]
+            y = Labels[np.newaxis, ...]
+            y = y[..., np.newaxis]                         # 1 x n x 1
+            Ws_local = np.array(Ws) # 1 x d x m
+            SquareLoss = np.mean((X @ Ws_local - y) ** 2, axis=1).reshape(-1)
+            return SquareLoss
+        plt.plot(Lambdas, SquareLoss(Xtrain, Ytrain))
+        plt.plot(Lambdas, SquareLoss(Xtest, Ytest))
         plt.title("Square Loss for different $\\lambda$ on Test set")
         plt.xlabel("$\\lambda$")
         plt.ylabel("Square Loss")
         plt.xscale("log")
+        plt.legend(["Train Loss", "Test Loss"])
         plt.savefig("A5e-plot.png")
         plt.show()
 
