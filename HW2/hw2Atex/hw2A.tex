@@ -608,9 +608,7 @@ if __name__ == "__main__":
             
 \section*{A.6}
     \subsection*{A.6.a}
-        To find the gradient, we use the idea of automatic differential, by looking at the partial derivative for each of the $w_i$ and then stack them together into a vertical vector, then we get the gradient for it.
-        \\
-        \textbf{Note}: I found 2 ways of doing this, both are not beautfiful, so I have no idea why we are doing this $u_i$ things if it can't produce a beautiful form for the gradient.  
+        To find the gradient, we use the idea of automatic differential, by looking at the partial derivative for each of the $w_i$ and then stack them together into a vertical vector, then we get the gradient for it. The same strategy is used for looking for the gradient wrt to vector $b$. 
         \\
         Here is the objective function, it looks like this: 
         \begin{align*}\tag{A.6.a.1}\label{eqn:A.6.a.1}
@@ -622,233 +620,104 @@ if __name__ == "__main__":
         \\
         First, let's consider the partial derivative of the objective function through $\partial_{w_j}[J](w, b)$: 
         \begin{align*}\tag{A.6.a.2}\label{eqn:A.6.a.2}
-            \partial_{w_j} \left[
-                J
-            \right](w, b) 
-            &= \frac{1}{n} \partial_{w_j} \left[ 
-                \sum_{i = 1}^{n}
-                \log(1 + \exp(-y_i(b + x^T_iw))) 
-            \right]
-            +\lambda\partial_{w_j} \Vert w\Vert_2^2
-            \\
-            &= 
-            \frac{1}{n} \sum_{i = 1}^{n}
-            \left(
-                \partial_{w_j} \left[ 
-                    \log(1 + \exp(-y_i(b + x^T_iw))) 
-                \right] + 2\lambda w_j
-            \right)
-            \\
-            &= 
-            \frac{1}{n} \sum_{i = 1}^{n}
-            \left(
-                \frac{1}{1 + \exp(-y_i(b + x^T_iw))}
-                \partial_{w_j}
-                \left[
-                    1 + \exp(-y_i(b + x^T_iw))
+            \partial_{w_j}[J](w, b) 
+            &=
+            \frac{1}{n}\sum_{i  = 1}^{n}
+            \partial_{w_j}\left[
+                    \log \left(
+                        1 + \exp(-y_i(b - x_i^T w))
+                    \right)
                 \right]
-            \right)
-            + 2\lambda w_j
+            + \lambda\partial_{w_j}[\Vert w\Vert_2^2]
             \\
             &= 
-            \frac{1}{n} \sum_{i = 1}^{n}
-            \left(
+            \frac{1}{n}\sum_{i  = 1}^{n}
                 \frac{
-                    \exp(-y_i(b + x_i^Tw))
-                }{1 + \exp(-y_i(b + x^T_iw))}
-                \partial_{w_j}
-                \left[
-                    -y_i(b + x_i^Tw)
-                \right]
-            \right)
-            + 2\lambda w_j
+                    \partial_{w_j}[1 + \exp(-y_i(b - x_i^T w))]
+                }
+                {
+                    1 + \exp(-y_i(b - x_i^T w))
+                }
+                +
+                2\lambda w_j
             \\
             &= 
-            \frac{1}{n} \sum_{i = 1}^{n}
-            \left(
+            \frac{1}{n}\sum_{i  = 1}^{n}
                 \frac{
-                    \exp(-y_i(b + x_i^Tw))
-                }{1 + \exp(-y_i(b + x^T_iw))}
-                (-y_ix_{i, j})
-            \right)
-            + 2\lambda w_j
+                    \exp(-y_i(b - x_i^T w))
+                }
+                {
+                    1 + \exp(-y_i(b - x_i^T w))
+                }\partial_{w_j}[-y_i(b - x_i^Tw)]
+                + 2\lambda w_j
+        \end{align*}
+        Now, let's take a look at this fact, which will help with simplifying the results above: 
+        \begin{align*}\tag{A.6.a.3}\label{eqn:A.6.a.3}
+            1 - \mu_i(w, b) &= 
+            1 - \frac{1}{1 + \exp(-y_i(b - x_i^T w))}
             \\
             &= 
-            \frac{1}{n} \sum_{i = 1}^{n}
-            \left(
-                \frac{
-                    -\exp(-y_i(b + x_i^Tw))
-                }{1 + \exp(-y_i(b + x^T_iw))}
-                (y_ix_{i, j})
-            \right)
-            + 2\lambda w_j
-            \\
+            \frac{\exp(-y_i(b - x_i^T w)}{1 + \exp(-y_i(b - x_i^T w))}
+        \end{align*}
+        Therefore we have: 
+        \begin{align*}\tag{A.6.a.4}\label{eqn:A.6.a.4}
+            \partial_{w_j}[J](w, b)
             &= 
-            \frac{1}{n} \sum_{i = 1}^{n}
-            \left(
+            \frac{1}{n}\sum_{i  = 1}^{n}
                 \underbrace{\frac{
-                    -1
-                }{1 + \exp(y_i(b + x^T_iw))}}_{-u_i(-w, -b)}
-                (y_ix_{i, j})
-            \right)
-            + 2\lambda w_j
+                    \exp(-y_i(b - x_i^T w))
+                }
+                {
+                    1 + \exp(-y_i(b - x_i^T w))
+                }}_{= 1- \mu_i(w, b)}\underbrace{\partial_{w_j}[-y_i(b - x_i^Tw)]}_{= -y_ix_{i,j}}
+                + 2\lambda w_j
+            \\
+            &= 
+            \frac{1}{n}\sum_{i  = 1}^{n}
+                (1- \mu_i(w, b))(-y_i x_{i, j})
+                + 2\lambda w_j
+            \\
+            \implies \nabla_w[J](w, b) &= \frac{-1}{n}\sum_{i = 1}^{n}
+                (1 - \mu_i(w, b))y_ix_i
+        \end{align*}
+        Note that in here, the vector $x_i$ is the row of the matrix $X$, but it's put into a column vector and then it's multiplied with the constant in the sum. 
+        \\
+        To get the gradient for $b$, we just need to continue on second sted from \hyperref[eqn:A.6.a.2]{A.6.a.2} and it will be like: 
+        \begin{align*}\tag{A.6.a.5}\label{eqn:A.6.a.5}
+            \partial_{b}[J](w, b)
+            &= 
+            \frac{1}{n}\sum_{i  = 1}^{n}
+                \frac{
+                    \partial_{b}[1 + \exp(-y_i(b - x_i^T w))]
+                }
+                {
+                    1 + \exp(-y_i(b - x_i^T w))
+                }
+                +
+                \underbrace{\lambda\partial_{b}[\Vert w\Vert_2^2]}_{ = 0}
+            \\
+            &= 
+            \frac{1}{n}\sum_{i  = 1}^{n}
+                \frac{
+                    \exp(-y_i(b - x_i^T w))
+                }
+                {
+                    1 + \exp(-y_i(b - x_i^T w))
+                }
+                \partial_{b}[-y_i(b - x_i^Tw)]
             \\
             &=
-            \frac{1}{n} \sum_{i = 1}^{n}
-            \left(
-                -u_i(-w, -b)
-                (y_ix_{i, j})
-            \right)
-            + 2\lambda w_j
-        \end{align*}
-        And personally, I found a matrix representation of the gradient using the above expression, which will be like: 
-        \begin{align*}\tag{A.6.a.2.1}\label{eqn:A.6.a.2.1}
-            \nabla_w[J](w, b) = 
-            \frac{1}{n}X^T \begin{bmatrix}
-                -y_1 u_1(-w, -b) 
-                \\
-                -y_2u_2(-w, -b) 
-                \\
-                \vdots
-                \\
-                -y_n u_n(-w, -b) 
-            \end{bmatrix} + 2\lambda w 
-            \text{ Where}: 
-            X = \begin{bmatrix}
-                \hspace{1.1em} x_1^T \hspace{1.1em} \\ \hspace{1.1em} x_2^T \hspace{1.1em} \\ \vdots \\ \hspace{1.1em} x_n^T \hspace{1.1em}
-            \end{bmatrix}
-        \end{align*}
-        \textbf{Alternatively}, there is another way of doing it and it will be like: 
-        \begin{align*}\tag{A.6.a.3}\label{eqn:A.6.a.3}
-            \partial_{w_j}[J](w, b) &=  \frac{1}{n} \sum_{i = 1}^{n}
-            \left(
-                \frac{1}{1 + \exp(-y_i(b + x^T_iw))}
-                \partial_{w_j}
-                \left[
-                    1 + \exp(-y_i(b + x^T_iw))
-                \right]
-            \right)
-            + 2\lambda w_j
+            \frac{-1}{n}\sum_{i  = 1}^{n}
+                \frac{
+                    (y_i)\exp(-y_i(b - x_i^T w))
+                }
+                {
+                    1 + \exp(-y_i(b - x_i^T w))
+                }
             \\
-            &= 
-            \frac{1}{n} \sum_{i = 1}^{n}
-            \left(
-                u_i(w, b)
-                \partial_{w_j}
-                \left[
-                    u_i
-                \right](w, b)
-            \right)
-            + 2\lambda w_j
+            &=
+            \frac{-1}{n}\sum_{i  = 1}^{n}
+                y_i\mu_i(w, b)
         \end{align*}
-        Both are equivalent, and I think the second one is the correct one, and it can be written in matrix form like: 
-        \begin{align*}\tag{A.6.a.3.1}\label{eqn:A.6.a.3.1}
-            \nabla_w[J](w, b) = 
-            \frac{1}{n} \begin{bmatrix}
-               \partial_{w_1}[u_1](w, b) & \partial_{w_1}[u_2](w, b) & \cdots &\partial_{w_1}[u_n](w, b)
-               \\
-               \partial_{w_2}[u_1](w, b) & \partial_{w_2}[u_2](w, b) & \cdots &\partial_{w_2}[u_n](w, b)
-               \\
-               \vdots 
-               \\
-               \partial_{w_n}[u_1](w, b) & \partial_{w_n}[u_2](w, b) & \cdots &\partial_{w_n}[u_n](w, b)
-            \end{bmatrix}
-            \begin{bmatrix}
-                u_1(w, b) \\ 
-                u_2(w, b) \\
-                \vdots
-                \\
-                u_n(w, b)
-            \end{bmatrix}
-            + 2\lambda w
-        \end{align*}
-        And it's not hard to see that, we have some of gradient going on here: 
-        \begin{align*}\tag{A.6.a.3.2}\label{eqn:A.6.a.3.2}
-            \nabla_w[J](w, b) = 
-            \frac{1}{n} \begin{bmatrix}
-               | & | & &|
-               \\
-               \nabla_w u_1(w, b) & \nabla_w u_2(w, b) & \cdots & \nabla_w u_n(w, b)
-               \\
-               | & | & &|
-            \end{bmatrix}
-            \begin{bmatrix}
-                u_1(w, b) \\ 
-                u_2(w, b) \\
-                \vdots
-                \\
-                u_n(w, b)
-            \end{bmatrix}
-            + 2\lambda w
-        \end{align*}
-        Next, we would like to supply with the gradient of $\nabla_w u_i(w, b)$, which is going to be like: 
-        \begin{align*}\tag{6.a.3.3}\label{eqn:6.a.3.3}
-            \nabla_{w}[u_i](w, b) 
-            &= 
-            \nabla_{w} \left[
-                1 + \exp(-y_i(b + x_i^Tw))
-            \right]
-            \\
-            &= 
-            \exp(-y_i(b + x_i^Tw))\nabla_{w}\left[
-                -y_i(b + x_i^Tw)
-            \right]
-            \\
-            &=-\exp(-y_i(b + x_i^Tw))y\circ x_i
-        \end{align*}
-        Where the $\circ$ operator denotes the elementwise multiplication of vectors. 
-        \\
-        To take the derivative on of the element in the bias vector, then we only need to jump straight to step 4 of \hyperref[eqn:A.6.a.2]{A.6.a.2}, and ignore the term $2\lambda w_j$ on that step, because we are not regularizing on the offset vector. This will be giving us: 
-        \begin{align*}\tag{A.6.a.4}\label{eqn:A.6.a.4}
-            \partial_{b_j}[J](w, b) 
-            &= 
-            \frac{1}{n} \sum_{i = 1}^{n}
-            \left(
-                \frac{1}{1 + \exp(-y_i(b + x^T_iw))}
-                \partial_{b_j}
-                \left[
-                    1 + \exp(-y_i(b + x^T_iw))
-                \right]
-            \right)
-            \\
-            &= 
-            \frac{1}{n} \sum_{i = 1}^{n}
-            \left(
-                u_i(w, b)
-                \partial_{b_j}
-                \left[
-                    u_i
-                \right](w, b)
-            \right)
-        \end{align*}
-        And conveniently like what we did before, this can be written like: 
-        \begin{align*}\tag{A.6.a.5}\label{eqn:A.6.a.5}
-            \nabla_b[J](w, b) = 
-            \frac{1}{n} \begin{bmatrix}
-                | & | &  &|
-                \\
-                \nabla_b u_1(w, b) & \nabla_b u_2(w, b) & \cdots& \nabla_b u_n(w, b)
-                \\
-                | & | &  &|
-             \end{bmatrix}
-             \begin{bmatrix}
-                 u_1(w, b) \\ 
-                 u_2(w, b) \\
-                 \vdots
-                 \\
-                 u_n(w, b)
-             \end{bmatrix}
-        \end{align*}
-        And the gradient is given by: 
-        \begin{align*}\tag{A.6.a.6}\label{eqn:A.6.a.6}
-            \nabla_b[u_i] &= \nabla_b[1 + \exp(-y_i(b + x_i^Tw))]
-            \\
-            &= 1 + \exp(-y_i(b + x_i^Tw))\nabla_{-y_i(b + x_i^Tw)}
-            \\
-            &= 1 + \exp(-y_i(b + x_i^Tw))(-y_i)
-        \end{align*}
-    \subsection*{A.6.b}
-    \subsection*{A.6.c}
-    \subsection*{A.6.d}
-
+        And this make sense because wrt to $w$, which is a vector we get the gradient, and here we get scalar for the derivative. 
 \end{document}

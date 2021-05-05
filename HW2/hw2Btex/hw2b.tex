@@ -122,7 +122,184 @@
         Convex loss function is easier to optimize, it has minimal, and it's a convex set of minimal as well. And the use of a \textbf{strictly convex regularizer} will give \textbf{unique global optimal}, the strongly convex loss function is the best, because gradient descent performs really well on them. 
 \section*{B.4: Multinomial Logistic Regression}
     \subsection*{B.4.a}
-        We are going to take the gradient. 
+        We are going to take the gradient on the loss function. Our objective is to find the log MLE of the following Loss Function: 
+        \begin{align*}\tag{B.4.1}\label{eqn:B.4.1}
+            \mathcal{L}(W) = - \sum_{i = 1}^{n} \sum_{l = 1}^{k}
+                \mathbf{1}\{y_i = l\} \log \left(
+                    \frac{\exp \left(
+                        w^{(l)}\cdot x_i
+                    \right)}{
+                        \sum_{j = 1}^{k}
+                        \exp \left(
+                            w^{j}\cdot x_i
+                        \right)
+                    }
+                \right)
+        \end{align*}
+        To find the gradient of the loss function wrt the parameter matrix $W = [w^{(1)}, w^{(2)}, \cdots,w^{(k)}]$. We are going to take the gradient on the loss function wrt each column of the matrix and then we will stack then horizontal together to get the resulting matrix. Let's consider
+        \begin{align*}\tag{B.4.2}\label{eqn:B.4.2}
+            \nabla_{w^{(m)}}L(W) 
+            &= 
+            -\sum_{i = 1}^{n}
+            \sum_{l = 1}^{k}
+                \mathbf{1}\{y_i = l\}
+                \nabla_{w^{(m)}} \left[
+                    \log \left(
+                    \frac{x_i^T\exp(x_i^Tw^{(l)})}{
+                        \sum_{j = 1}^{k}
+                            \exp(x_i^T w^{(j)})
+                    }
+                    \right)
+                \right]
+        \end{align*}
+        Let's take a look at the inner part more carefully, and simpifying it will give us something like: 
+        \begin{align*}\tag{B.4.3}\label{eqn:B.4.3}
+            \nabla_{w^{(m)}} \left[
+                \log \left(
+                \frac{x_i^T\exp(x_i^T w^{(l)})}{
+                    \sum_{j = 1}^{k}
+                        \exp(x_i^T w^{(j)})
+                }
+                \right)
+            \right] &= 
+            \left(
+                \begin{cases}
+                    x_i  & l = m 
+                    \\
+                    0 & \text{else}      
+                \end{cases}
+            \right)
+            -
+            \partial_{w^{(m)}}\left[
+                \log
+                \left(
+                    \sum_{j = 1}^{k}
+                        \exp\left(
+                            x_i^T w^{(j)}
+                        \right)
+                \right)
+            \right]
+            \\
+            &=
+            \left(
+                \begin{cases}
+                    x_i  & l = m 
+                    \\
+                    0 & \text{else}      
+                \end{cases}
+            \right)
+            -
+            \frac{
+                \partial_{w^{(m)}} \left[
+                    \sum_{j = 1}^{k}
+                        \exp\left(
+                            x_i^T w^{(j)}
+                        \right)
+                \right]
+            }{
+                    \sum_{j = 1}^{k}
+                        \exp\left(
+                            x_i^T w^{(j)}
+                        \right)
+            }
+            \\
+            &=
+            \left(
+                \begin{cases}
+                    x_i  & l = m 
+                    \\
+                    0 & \text{else}      
+                \end{cases}
+            \right)
+            -
+            \frac{
+                \exp(x_i^T w^{(m)})x_i
+            }{
+            \sum_{j = 1}^{k}
+                \exp\left(
+                    x_i^T w^{(j)}
+                \right)
+            }
+            \\
+            &= 
+            x_i\left(
+                \mathbf{1}\{l = m\} - 
+                \frac{
+                    \exp(x_i^T w^{(m)})x_i
+                }{
+                \sum_{j = 1}^{k}
+                    \exp\left(
+                        x_i^T w^{(j)}
+                    \right)
+                }
+            \right)
+        \end{align*}
+        Do take note that $l = m \iff y_i = l$ and these 2 evets happens at the same time and they are interchangable.  
+        \\
+        And we follow the tradition of using the label vector from previous HW1, which is that each of the $y_i$ is a column vector, and it's $1$ in the ``i'' th position of the vector, denoting the the data $x_i$ has label $i$. 
+        \\
+        Another thing we are going to make use is the $\text{softmax}(\theta)$ which is a vector function mapping from $\mathbb{R}^k$ to $\mathbb{R}^k$: 
+        $$
+            \left(
+                \text{softmax}(\theta)
+            \right)_m
+            = \frac{\exp(\theta_m)}{
+                \sum_{j = 1}^{k}\exp(\theta_j)
+            }
+        $$
+        Where, we showcase the $m$ th element of this function when we put into the vector $\theta$. 
+        \\
+        We may use this to simply simpify the cases situation above, and that should give us: 
+        \begin{align*}\tag{B.4.4}\label{eqn:B.4.4}
+            -\sum_{i = 1}^{n}
+                \mathbf{1}\{y_i = l\}
+                \nabla_{w^{(m)}} \left[
+                    \log \left(
+                    \frac{x_i^T\exp(x_i^T w^{(l)})}{
+                        \sum_{j = 1}^{k}
+                            \exp(x_i^T w^{(j)})
+                    }
+                    \right)
+                \right] 
+            &= 
+            -\sum_{i = 1}^{n} 
+            x_i \left(
+                \mathbf{1}\{y_i = l\} - 
+                \underbrace{\frac{
+                        \exp(x_i^T w^{(m)})
+                    }{
+                            \sum_{j = 1}^{k}
+                                \exp\left(
+                                    x_i^T w^{(j)}
+                                \right)
+                   }}_{(\text{softmax}((x_i^TW)^T))_m}
+                \right)
+            \\
+            &= 
+            -\sum_{i = 1}^{n} 
+            x_i \left(
+                \mathbf{1}\{y_i = l\}
+                - (\text{softmax}(W^Tx_i))_m
+                \right)
+        \end{align*}
+        Now, I am going horizontally stack all these vector together, and notice that it can be written as an outter product, and the condition $\mathbf{1}(y_i = l)$ can be replaced with the appropriate label vector $y_i$, and this will be like: 
+        \begin{align*}\tag{B.4.5}\label{eqn:B.4.5}
+            \nabla_{W}\mathcal{L}(W) &=
+            -\sum_{i = 1}^{n}
+                x_i(y_i - \text{softmax}(W^Tx_i))^T
+        \end{align*}
+        Then in this case, we just need to make the definition that: 
+        $$
+            \hat{y}_i^{W} = \text{sfotmax}(W^Tx_i)
+        $$
+        Then substituting this back to the previous part, we have the expression that: 
+        \begin{align*}\tag{B.4.6}\label{eqn:B.4.6}
+            \nabla_{W}\mathcal{L}(W) &=
+            -\sum_{i = 1}^{n}
+                x_i(y_i - \hat{y}_i^{(W)})^T
+        \end{align*}
+    \subsection*{B.4.b}
+    
 \section*{B.5: Confidence Interval of Least Squares Estimation: Bounding Estimate}
 
 
