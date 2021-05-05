@@ -783,13 +783,20 @@ if __name__ == "__main__":
         \end{align*}
         Next, we would like to supply with the gradient of $\nabla_w u_i(w, b)$, which is going to be like: 
         \begin{align*}\tag{6.a.3.3}\label{eqn:6.a.3.3}
-            \nabla_{w}[u_i](w, b) &= 
+            \nabla_{w}[u_i](w, b) 
+            &= 
             \nabla_{w} \left[
-                1 + \exp(y_i(b + x_i^Tw))
+                1 + \exp(-y_i(b + x_i^Tw))
             \right]
             \\
             &= 
+            \exp(-y_i(b + x_i^Tw))\nabla_{w}\left[
+                -y_i(b + x_i^Tw)
+            \right]
+            \\
+            &=-\exp(-y_i(b + x_i^Tw))y\circ x_i
         \end{align*}
+        Where the $\circ$ operator denotes the elementwise multiplication of vectors. 
         \\
         To take the derivative on of the element in the bias vector, then we only need to jump straight to step 4 of \hyperref[eqn:A.6.a.2]{A.6.a.2}, and ignore the term $2\lambda w_j$ on that step, because we are not regularizing on the offset vector. This will be giving us: 
         \begin{align*}\tag{A.6.a.4}\label{eqn:A.6.a.4}
@@ -815,7 +822,7 @@ if __name__ == "__main__":
             \right)
         \end{align*}
         And conveniently like what we did before, this can be written like: 
-        \begin{align*}\tag{A.6.a.4}\label{eqn:A.6.a.4}
+        \begin{align*}\tag{A.6.a.5}\label{eqn:A.6.a.5}
             \nabla_b[J](w, b) = 
             \frac{1}{n} \begin{bmatrix}
                 | & | &  &|
@@ -832,6 +839,16 @@ if __name__ == "__main__":
                  u_n(w, b)
              \end{bmatrix}
         \end{align*}
-        
+        And the gradient is given by: 
+        \begin{align*}\tag{A.6.a.6}\label{eqn:A.6.a.6}
+            \nabla_b[u_i] &= \nabla_b[1 + \exp(-y_i(b + x_i^Tw))]
+            \\
+            &= 1 + \exp(-y_i(b + x_i^Tw))\nabla_{-y_i(b + x_i^Tw)}
+            \\
+            &= 1 + \exp(-y_i(b + x_i^Tw))(-y_i)
+        \end{align*}
+    \subsection*{A.6.b}
+    \subsection*{A.6.c}
+    \subsection*{A.6.d}
 
 \end{document}
