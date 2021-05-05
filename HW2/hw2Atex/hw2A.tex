@@ -781,6 +781,15 @@ if __name__ == "__main__":
             \end{bmatrix}
             + 2\lambda w
         \end{align*}
+        Next, we would like to supply with the gradient of $\nabla_w u_i(w, b)$, which is going to be like: 
+        \begin{align*}\tag{6.a.3.3}\label{eqn:6.a.3.3}
+            \nabla_{w}[u_i](w, b) &= 
+            \nabla_{w} \left[
+                1 + \exp(y_i(b + x_i^Tw))
+            \right]
+            \\
+            &= 
+        \end{align*}
         \\
         To take the derivative on of the element in the bias vector, then we only need to jump straight to step 4 of \hyperref[eqn:A.6.a.2]{A.6.a.2}, and ignore the term $2\lambda w_j$ on that step, because we are not regularizing on the offset vector. This will be giving us: 
         \begin{align*}\tag{A.6.a.4}\label{eqn:A.6.a.4}
