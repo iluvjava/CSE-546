@@ -2,6 +2,8 @@
 ### Class: CSE 546
 ### This is for A5 of the HW2.
 ### Don't copy my code this is my code it has my style in it.
+### !!!!!
+### Requires: lasso.py
 
 from lasso import LassoRegression, np, LassoLambdaMax
 import pandas as pd
@@ -41,7 +43,7 @@ def A5PlotsAndShow():
             FlagPre = FlagCur
             FlagCur = Lambda < 0.01         # Last one!
             if Model is None:
-                Model = LassoRegression(regularization_lambda=Lambda)
+                Model = LassoRegression(regularization_lambda=Lambda, delta=1e-4)
             else:
                 Model.Lambda = Lambda
             Model.fit(Xtrain, Ytrain)
@@ -61,12 +63,13 @@ def A5PlotsAndShow():
 
     def A5d():
         # Features to pick up: agePct12t29,pctWSocSec,pctUrban,agePct65up
-        Features = ["agePct12t29","pctWSocSec","pctUrban","agePct65up"]
+        Features = ["agePct12t29","pctWSocSec","pctUrban","agePct65up", "householdsize"]
         FeaturesIndices = []
         for II, Feature in enumerate(TrainDf.columns):
-            if Feature in Features: FeaturesIndices.append(II)
+            ### FREATURES INDICES - 1 Because 2 has one element less than the original data frame!!!
+            if Feature in Features: FeaturesIndices.append(II - 1)
         FeaturesLassoPath = np.array([w[FeaturesIndices, ...].reshape(-1) for w in Ws])
-        for II in range(4):
+        for II in range(len(Features)):
             plt.plot(Lambdas, FeaturesLassoPath[:, II])
         plt.legend(Features)
         plt.xlabel("$\\lambda$")
@@ -104,12 +107,12 @@ def A5PlotsAndShow():
         Model  = LassoRegression(regularization_lambda=Lambda)
         Model.fit(Xtrain, Ytrain)
         w = Model.w
-        WLargestIndx = np.argmax(w)
-        WSmallestIdx = np.argmin(w)
+        WLargestIndx = np.argmax(w) + 1
+        WSmallestIdx = np.argmin(w) + 1
         print(f"Features with the largest Lasso Coefficient is: {TrainDf.columns[WLargestIndx]}")
         print(f"Features with the smallest Lasso Coefficient is: {TrainDf.columns[WSmallestIdx]}")
-        print(f"The largest value is: {w[WLargestIndx, ...]}")
-        print(f"The smallest value is: {w[WSmallestIdx, ...]}")
+        print(f"The largest value is: {w[WLargestIndx - 1, ...]}")
+        print(f"The smallest value is: {w[WSmallestIdx - 1, ...]}")
     A5f()
 
 

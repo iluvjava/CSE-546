@@ -87,13 +87,13 @@ class LassoRegression:
                 a_k = a[k]
                 Indices = [J for J in range(d) if J != k]
                 c_k = 2 * sum(
-                    X[::, [k]]
+                    X[:, [k]]
                     *
-                    (y2d - (b + X[:, Indices] @ w[Indices]))
+                    (y2d - (b + X[:, Indices] @ w[Indices, :]))
                 )
                 w_k = 0 if (abs(c_k) < l) else (c_k - sign(c_k) * l) / a_k
-                deltaW[k, ...] = abs(w_k - w[k, ...])
-                w[k] = w_k
+                deltaW[k, 0] = abs(w_k - w[k, 0])
+                w[k, 0] = w_k
             this._print(f"delta w is: {deltaW.reshape(-1)}")
             this._print(f"lambda is: {this.Lambda}")
         if MaxItr == Itr:
@@ -215,7 +215,8 @@ def main():
         N, d = 40, 4
         X = np.random.rand(N, d)
         Noise = np.random.randn(N, 1) * 1e-3
-        Wtrue = np.random.randint(0, 100, (d, 1))
+        Wtrue = np.random.randint(0, 2, (d, 1))
+        print(f"true parameters: {Wtrue}")
         y = X @ Wtrue + Noise
         y = y.reshape(-1)
 
@@ -236,7 +237,7 @@ def main():
         Model.fit(X, y)
         print(Model.w)
         print(Model.b)
-
+    SimpleTest()
     A4a_b()
 
 

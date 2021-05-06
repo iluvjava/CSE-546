@@ -473,10 +473,10 @@ if __name__ == "__main__":
         \begin{center}
             \includegraphics[width=10cm]{A5e-plot.png}
         \end{center}
-    \subsection*{A.5.f}
-        At a value of $\lambda = 30$, the largest lasso coefficients is identified to be: ``NumIlleg'' at a value of:  ``0.06872529'', which is: ``number of kids born to never married ''
+    \subsection*{A.5.f} 
+        At a value of $\lambda = 30$, the largest lasso coefficients is identified to be: ``PctIlleg'' at a value of:  ``0.06872529'', which is: ``percentage of kids born to never married (numeric - decimal)''
         \\
-        The smallest (Most negative) model parameters were identified to be: ``PctFam2Par'', at a value of  ``-0.06921581'', which is: ``percentage of families (with kids) that are headed by two parents''. 
+        The smallest (Most negative) model parameters were identified to be: ``PctKids2Par'', at a value of  ``-0.06921581'', which is: ` percentage of kids born to never married (numeric - decimal)''. 
     \subsection*{A.5.g}
         The politicians falsely thinks that, the cause of crime rate is because there are too many young people upon seeing the negative weights placed on ``agePct65Up'', the key here is that, \textbf{correlations doesn't imply casuality}. Every statisticians know this. 
     \subsection*{A.5.code}
@@ -487,6 +487,8 @@ if __name__ == "__main__":
 ### Class: CSE 546
 ### This is for A5 of the HW2.
 ### Don't copy my code this is my code it has my style in it.
+### !!!!!
+### Requires: lasso.py
 
 from lasso import LassoRegression, np, LassoLambdaMax
 import pandas as pd
@@ -526,7 +528,7 @@ def A5PlotsAndShow():
             FlagPre = FlagCur
             FlagCur = Lambda < 0.01         # Last one!
             if Model is None:
-                Model = LassoRegression(regularization_lambda=Lambda)
+                Model = LassoRegression(regularization_lambda=Lambda, delta=1e-4)
             else:
                 Model.Lambda = Lambda
             Model.fit(Xtrain, Ytrain)
@@ -546,12 +548,13 @@ def A5PlotsAndShow():
 
     def A5d():
         # Features to pick up: agePct12t29,pctWSocSec,pctUrban,agePct65up
-        Features = ["agePct12t29","pctWSocSec","pctUrban","agePct65up"]
+        Features = ["agePct12t29","pctWSocSec","pctUrban","agePct65up", "householdsize"]
         FeaturesIndices = []
         for II, Feature in enumerate(TrainDf.columns):
-            if Feature in Features: FeaturesIndices.append(II)
+            ### FREATURES INDICES - 1 Because 2 has one element less than the original data frame!!!
+            if Feature in Features: FeaturesIndices.append(II - 1)
         FeaturesLassoPath = np.array([w[FeaturesIndices, ...].reshape(-1) for w in Ws])
-        for II in range(4):
+        for II in range(len(Features)):
             plt.plot(Lambdas, FeaturesLassoPath[:, II])
         plt.legend(Features)
         plt.xlabel("$\\lambda$")
@@ -564,16 +567,20 @@ def A5PlotsAndShow():
 
     def A5e():
         print(f"{'='*10} Running A5(e), plotting the Squared Errors {'='*10}")
-        X = Xtest[np.newaxis, ...]
-        y = Ytest[np.newaxis, ...]
-        y = y[..., np.newaxis]                         # 1 x n x 1
-        Ws_local = np.array(Ws) # 1 x d x m
-        SquareLoss = np.mean((X @ Ws_local - y) ** 2, axis=1).reshape(-1)
-        plt.plot(Lambdas, SquareLoss)
+        def SquareLoss(Data, Labels):
+            X = Data[np.newaxis, ...]
+            y = Labels[np.newaxis, ...]
+            y = y[..., np.newaxis]                         # 1 x n x 1
+            Ws_local = np.array(Ws) # 1 x d x m
+            SquareLoss = np.mean((X @ Ws_local - y) ** 2, axis=1).reshape(-1)
+            return SquareLoss
+        plt.plot(Lambdas, SquareLoss(Xtrain, Ytrain))
+        plt.plot(Lambdas, SquareLoss(Xtest, Ytest))
         plt.title("Square Loss for different $\\lambda$ on Test set")
         plt.xlabel("$\\lambda$")
         plt.ylabel("Square Loss")
         plt.xscale("log")
+        plt.legend(["Train Loss", "Test Loss"])
         plt.savefig("A5e-plot.png")
         plt.show()
 
@@ -585,8 +592,8 @@ def A5PlotsAndShow():
         Model  = LassoRegression(regularization_lambda=Lambda)
         Model.fit(Xtrain, Ytrain)
         w = Model.w
-        WLargestIndx = np.argmax(w)
-        WSmallestIdx = np.argmin(w)
+        WLargestIndx = np.argmax(w) + 1
+        WSmallestIdx = np.argmin(w) + 1
         print(f"Features with the largest Lasso Coefficient is: {TrainDf.columns[WLargestIndx]}")
         print(f"Features with the smallest Lasso Coefficient is: {TrainDf.columns[WSmallestIdx]}")
         print(f"The largest value is: {w[WLargestIndx, ...]}")
@@ -677,7 +684,7 @@ if __name__ == "__main__":
                 (1- \mu_i(w, b))(-y_i x_{i, j})
                 + 2\lambda w_j
             \\
-            \implies \nabla_w[J](w, b) &= \frac{-1}{n}\sum_{i = 1}^{n}
+            \implies \nabla_w[J](w, b) &= 2\lambda w + \frac{-1}{n}\sum_{i = 1}^{n}
                 (1 - \mu_i(w, b))y_ix_i
         \end{align*}
         Note that in here, the vector $x_i$ is the row of the matrix $X$, but it's put into a column vector and then it's multiplied with the constant in the sum. 
