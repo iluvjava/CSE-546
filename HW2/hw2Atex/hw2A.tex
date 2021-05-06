@@ -632,7 +632,7 @@ if __name__ == "__main__":
             \frac{1}{n}\sum_{i  = 1}^{n}
             \partial_{w_j}\left[
                     \log \left(
-                        1 + \exp(-y_i(b - x_i^T w))
+                        1 + \exp(-y_i(b + x_i^T w))
                     \right)
                 \right]
             + \lambda\partial_{w_j}[\Vert w\Vert_2^2]
@@ -640,10 +640,10 @@ if __name__ == "__main__":
             &= 
             \frac{1}{n}\sum_{i  = 1}^{n}
                 \frac{
-                    \partial_{w_j}[1 + \exp(-y_i(b - x_i^T w))]
+                    \partial_{w_j}[1 + \exp(-y_i(b + x_i^T w))]
                 }
                 {
-                    1 + \exp(-y_i(b - x_i^T w))
+                    1 + \exp(-y_i(b + x_i^T w))
                 }
                 +
                 2\lambda w_j
@@ -651,20 +651,20 @@ if __name__ == "__main__":
             &= 
             \frac{1}{n}\sum_{i  = 1}^{n}
                 \frac{
-                    \exp(-y_i(b - x_i^T w))
+                    \exp(-y_i(b + x_i^T w))
                 }
                 {
-                    1 + \exp(-y_i(b - x_i^T w))
-                }\partial_{w_j}[-y_i(b - x_i^Tw)]
+                    1 + \exp(-y_i(b + x_i^T w))
+                }\partial_{w_j}[-y_i(b + x_i^Tw)]
                 + 2\lambda w_j
         \end{align*}
         Now, let's take a look at this fact, which will help with simplifying the results above: 
         \begin{align*}\tag{A.6.a.3}\label{eqn:A.6.a.3}
             1 - \mu_i(w, b) &= 
-            1 - \frac{1}{1 + \exp(-y_i(b - x_i^T w))}
+            1 - \frac{1}{1 + \exp(-y_i(b+  x_i^T w))}
             \\
             &= 
-            \frac{\exp(-y_i(b - x_i^T w)}{1 + \exp(-y_i(b - x_i^T w))}
+            \frac{\exp(-y_i(b + x_i^T w))}{1 + \exp(-y_i(b + x_i^T w))}
         \end{align*}
         Therefore we have: 
         \begin{align*}\tag{A.6.a.4}\label{eqn:A.6.a.4}
@@ -672,11 +672,11 @@ if __name__ == "__main__":
             &= 
             \frac{1}{n}\sum_{i  = 1}^{n}
                 \underbrace{\frac{
-                    \exp(-y_i(b - x_i^T w))
+                    \exp(-y_i(b + x_i^T w))
                 }
                 {
-                    1 + \exp(-y_i(b - x_i^T w))
-                }}_{= 1- \mu_i(w, b)}\underbrace{\partial_{w_j}[-y_i(b - x_i^Tw)]}_{= -y_ix_{i,j}}
+                    1 + \exp(-y_i(b + x_i^T w))
+                }}_{= 1- \mu_i(w, b)}\underbrace{\partial_{w_j}[-y_i(b +x_i^Tw)]}_{= -y_ix_{i,j}}
                 + 2\lambda w_j
             \\
             &= 
@@ -695,10 +695,10 @@ if __name__ == "__main__":
             &= 
             \frac{1}{n}\sum_{i  = 1}^{n}
                 \frac{
-                    \partial_{b}[1 + \exp(-y_i(b - x_i^T w))]
+                    \partial_{b}[1 + \exp(-y_i(b + x_i^T w))]
                 }
                 {
-                    1 + \exp(-y_i(b - x_i^T w))
+                    1 + \exp(-y_i(b + x_i^T w))
                 }
                 +
                 \underbrace{\lambda\partial_{b}[\Vert w\Vert_2^2]}_{ = 0}
@@ -706,25 +706,27 @@ if __name__ == "__main__":
             &= 
             \frac{1}{n}\sum_{i  = 1}^{n}
                 \frac{
-                    \exp(-y_i(b - x_i^T w))
+                    \exp(-y_i(b + x_i^T w))
                 }
                 {
-                    1 + \exp(-y_i(b - x_i^T w))
+                    1 + \exp(-y_i(b + x_i^T w))
                 }
-                \partial_{b}[-y_i(b - x_i^Tw)]
+                \partial_{b}[-y_i(b + x_i^Tw)]
             \\
             &=
             \frac{-1}{n}\sum_{i  = 1}^{n}
                 \frac{
-                    (y_i)\exp(-y_i(b - x_i^T w))
+                    (y_i)\exp(-y_i(b + x_i^T w))
                 }
                 {
-                    1 + \exp(-y_i(b - x_i^T w))
+                    1 + \exp(-y_i(b + x_i^T w))
                 }
             \\
             &=
             \frac{-1}{n}\sum_{i  = 1}^{n}
-                y_i\mu_i(w, b)
+                y_i(1 - \mu_i(w, b))
         \end{align*}
         And this make sense because wrt to $w$, which is a vector we get the gradient, and here we get scalar for the derivative. 
+    \subsection*{A.6.b}
+        I think in one of my math class, we did some logistic regression on Minist as well, and because the function is strongly convex, there is a $\beta$ that describe an upper bound for the ground of second order approximation of the function. 
 \end{document}

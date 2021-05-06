@@ -7,6 +7,7 @@
 
 from mnist import MNIST
 from logistic import BinaryLogisticRegression, np
+import matplotlib.pyplot as plt
 
 zeros = np.zeros
 exp = np.exp
@@ -40,11 +41,42 @@ def main():
     XTrain, XTest, YTrain, YTest = load_dataset()
     XTrain, YTrain = Extract2And7(XTrain, YTrain)
     XTest, YTest = Extract2And7(XTest, YTest)
-    def A6a():
-        pass
-
     def A6b():
-        pass
+        print(f"Computing Best stepsize...")
+        StepSize = (1/norm(XTrain.T@XTrain) + 2*1e-1)*2; print(f"Step size is: {StepSize}")
+        Model = BinaryLogisticRegression(stepsize=StepSize)
+        LossTrain = []
+        LossTest = []
+        MisClassifyTrain = []
+        MisClassifyTest = []
+        Itr, MaxItr = 0, 5000
+        for w, b, gradw, gradb in Model.GradientUpdate(XTrain, YTrain, grad=True):
+            LossTrain.append(Model.CurrentLoss(XTrain, YTrain))
+            LossTest.append(Model.CurrentLoss(XTest, YTest))
+            Itr += 1; print(f"itr: {Itr}, Graident W: {norm(gradw)}, Gradient b: {gradb}")
+            MisClassifyTrain.append(0.5*mean(Model.Predict(XTrain, YTrain) - YTrain))
+            MisClassifyTrain.append(0.5 * mean(Model.Predict(XTest, YTest) - YTest))
+            if len(LossTrain) > 2 and norm(gradw) < 1e-6:
+                break
+            if Itr > MaxItr:
+                break
+
+
+        plt.plot(LossTrain)
+        plt.plot(LossTest)
+        plt.xlabel("Iteration Count")
+        plt.legend(["Training Loss", "Test Loss"])
+        plt.title("Smooth Gradient Descend: Loss Functions")
+        plt.show()
+        plt.plot(MisClassifyTrain)
+        plt.plot(MisClassifyTest)
+        plt.xlabel("Iteration Count")
+        plt.legend(["Training Misclassify", "Test Misclassify"])
+        plt.title("Smooth Gradient Descend: MissClassify")
+        plt.show()
+
+    A6b()
+
 
     def A6c():
         pass

@@ -9,7 +9,8 @@ mean = np.mean
 norm = np.linalg.norm
 array = np.array
 ones = np.ones
-
+log = np.log
+sign = np.sign
 
 class BinaryLogisticRegression:
 
@@ -36,7 +37,7 @@ class BinaryLogisticRegression:
         return this._b
 
 
-    def GradientUpdate(this, X, y):
+    def GradientUpdate(this, X, y, grad=False):
         """
             This function is gonna yield all my parameters during the gradient
             descend iterations, given the samples and the labels, it does it,
@@ -67,21 +68,26 @@ class BinaryLogisticRegression:
         this._b = b
         def Mu(w, b):
             # This is a VECTOR function, returns a n by 1 VECTOR
-            return 1/(1 + exp(y*(b - X@w)))
+            return 1/(1 + exp(-y*(b + X@w)))
 
         def gradientW(w, b):
-            v = y*(1 - Mu(w, b))
-            return (-1/n)*(X.T@v) + 2*this._Lambda*w
+            v = y*(Mu(w, b) - 1)
+            return (1/n)*(X.T@v) + 2*this._Lambda*w
 
         def gradientB(w, b):
-            return -mean(y*Mu(w, b))
+            return mean(y*(Mu(w, b) - 1))
 
         while True:
-            w += - gradientW(w, b)*this._StepSize
-            b += - gradientB(w, b)*this._StepSize
-            this._w = w
-            this._b = b
-            yield  w, b
+            w_new = w - gradientW(w, b)*this._StepSize
+            b_new = b - gradientB(w, b)*this._StepSize
+            w = w_new
+            b = b_new
+            this._w = w_new
+            this._b = b_new
+            if grad:
+                yield  w, b, gradientW(w, b), gradientB(w, b)
+            else:
+                yield w, b
 
     def CurrentLoss(this, X, y):
         """
@@ -103,17 +109,17 @@ class BinaryLogisticRegression:
         y = y[:, np.newaxis]  # n by 1
         b = this._b
         w = this._w
-        return mean(1 + exp(-y*(b + X@w))) + this._Lambda*norm(w)**2
+        return mean(log(1 + exp(-y*(b + X@w)))) + this._Lambda*norm(w)**2
 
     def Predict(this, X, y):
-        pass
+        return sign(X@this.w + this.b).astype(np.int)
 
 
 def main():
     def SimpleTest():
         def DistributionCenteredAt(a, b, N):
-            return np.random.randn(N, 2)*0.1 + array([[a, b]]), ones(N)
-        N = 100
+            return np.random.randn(N, 2)*0.0001 + array([[a, b]]), ones(N)
+        N = 200
         X1, y1 = DistributionCenteredAt(0, -2, N)
         X2, y2 = DistributionCenteredAt(0, 2, N)
         X = zeros((2*N, 2))
@@ -123,13 +129,13 @@ def main():
         y[:N] = y1
         y[N:] = -y2
         Itr = 0
-        Model = BinaryLogisticRegression()
-        for w, b in Model.GradientUpdate(X, y):
-            print(f"Model.CurrentLoss(X, y): {Model.CurrentLoss(X, y)}")
+        Model = BinaryLogisticRegression(stepsize=1e-1)
+        for w, b, gw, gb, in Model.GradientUpdate(X, y,grad=True):
+            print(f"Model.CurrentLoss(X, y): {Model.CurrentLoss(X, y)}, w: {w}, b: {b}")
+            print(f"Gradient w : {norm(gw)}")
+            print(f"Graident b: {norm(gb)}")
             if Itr > 1000: break
             Itr += 1
-        print(f"Decision Hyper Plane: {Model.w}")
-        print(f"Model Offset: {Model.b}")
     SimpleTest()
 
 
