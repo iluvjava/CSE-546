@@ -80,12 +80,10 @@ class BinaryLogisticRegression:
         while True:
             w_new = w - gradientW(w, b)*this._StepSize
             b_new = b - gradientB(w, b)*this._StepSize
-            w = w_new
-            b = b_new
-            this._w = w_new
-            this._b = b_new
+            w , b = w_new, b_new
+            this._w, this._b = b_new, w_new
             if grad:
-                yield  w, b, gradientW(w, b), gradientB(w, b)
+                yield w, b, gradientW(w, b), gradientB(w, b)
             else:
                 yield w, b
 
@@ -106,13 +104,20 @@ class BinaryLogisticRegression:
             " 2d and y must be a 1d vector, numerical."
         assert X.shape[0] == y.shape[0], \
             "The number of rows of X must equal to the number elements in y. "
-        y = y[:, np.newaxis]  # n by 1
-        b = this._b
-        w = this._w
+        n, k = X.shape
+        y = y[:, np.newaxis]                                # n by 1
+        w = zeros((k, 1)) if this._w is None else this._w   # k by 1
+        b = 0 if this._b is None else this._b
         return mean(log(1 + exp(-y*(b + X@w)))) + this._Lambda*norm(w)**2
 
-    def Predict(this, X, y):
-        return sign(X@this.w + this.b).astype(np.int)
+    def Predict(this, X):
+        assert type(X) is np.ndarray, \
+            "Must use numpy array to train the lasso."
+        assert len(X.shape) == 2, "Row data matrix has to be 2 D"
+        n, _ = X.shape
+        if this._b is None:
+            return zeros(n)
+        return sign(X@this.w + this.b).astype(np.int).reshape(-1)
 
 
 def main():
