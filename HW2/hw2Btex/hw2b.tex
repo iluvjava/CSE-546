@@ -282,7 +282,7 @@
                 - (\text{softmax}(W^Tx_i))_m
                 \right)
         \end{align*}
-        Now, I am going horizontally stack all these vector together, and notice that it can be written as an outter product, and the condition $\mathbf{1}(y_i = l)$ can be replaced with the appropriate label vector $y_i$, and this will be like: 
+        Now, I am going horizontally stack all these vector together (as $m$ goes from 1 to $d$. ), and notice that it can be written as an outter product, and the condition $\mathbf{1}(y_i = l)$ can be replaced with the appropriate label vector $y_i$, and this will be like: 
         \begin{align*}\tag{B.4.5}\label{eqn:B.4.5}
             \nabla_{W}\mathcal{L}(W) &=
             -\sum_{i = 1}^{n}
@@ -302,9 +302,49 @@
         From the previous HW1, it had been shown that the gradient of the Linear regression. But it's not exactly the same be cause last time there is a Ridge Regularizer that we need to remove in order to let it work this time. 
         \\
         The loss function is a scalar function, and we we are taking wrt to $W_{i, j}$, the element in the ith row and jth column of the weight matrix. 
+        \\
+        So here I am going to use the idea of automatic differentiation to figure out the gradient wrt to the weight matrix. It's going to be like: 
         \begin{align*}\tag{B.4.b.1}\label{eqn:B.4.b.1}
-            
+            \partial_{W[i, j]} \left[
+                \frac{1}{2}\sum_{k = 1}^{n}
+                    \Vert y_i - W^Tx_i\Vert_2^2
+            \right]
+            &=
+            \frac{1}{2}\sum_{k = 1}^{n}
+                    \left(
+                        \partial_{W[i, j]}[W^Tx_k]
+                    \right)^T
+                    (y_k - W^Tx_k)
+            \\
+            &= 
+            \sum_{k = 1}^{n}(x_k[i]\vec{e}_j)^T(y_k - W^Tx_k) 
+            \\
+            &= 
+            \sum_{k = 1}^{n} x_k[i] (y_k - W^T x_k)[j]
         \end{align*}
+        And the key here, is that $\partial_{W[i, j]}[W^Tx_k]$ equals to $x_k[i]\hat{e_j}$. So here, we are taking the derivative on a vector wrt to a scalar. 
+        \\
+        Only the j th output of the vector $W^Tx_k$ is related to $W_{i, j}$ because $W_{i, j}$ is at the j th column of $W^T$, and the element is multiplied by $x_i$ because $W_i, j$ is at the j th column of $W^T$, therefore, the output is a sparse vector that can be represented by $x_k[i]\vec{e}_j$ where $\vec{e}$ is the j th standard basis vector. 
+        \\
+        Lastly, I wanted to point out that, if we sweep through the rows and columns of the matrix, we get the outter product of these 2 indexed vector, hence we have: 
+        \begin{align*}\tag{B.4.b.2}\label{eqn:B.4.b.2}
+            \nabla_W \left[
+                \frac{1}{2}\sum_{k = 1}^{n}
+                    \Vert y_i - W^Tx_i\Vert_2^2
+            \right]
+            &= 
+            \sum_{k = 1}^{n} x_k(y_k - W^T x_k)^T
+        \end{align*}
+        With the susbtitution that $\tilde{y}_i^{(W)}= W^Tx_i$, we have: 
+        \begin{align*}\tag{B.4.b.3}\label{eqn:B.4.b.3}
+            \nabla_W \left[
+                \frac{1}{2}\sum_{k = 1}^{n}
+                    \Vert y_i - W^Tx_i\Vert_2^2
+            \right]
+            &= 
+            \sum_{k = 1}^{n} x_k(y_k - \tilde{y}_i^{(W)})^T
+        \end{align*}
+        And notice that it has the exact same form as the Multinomial Logistic Regression from before. 
     \subsection*{B.4.c}
     
 \section*{B.5: Confidence Interval of Least Squares Estimation: Bounding Estimate}
