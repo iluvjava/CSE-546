@@ -30,14 +30,14 @@ class BinaryLogisticRegression:
 
     @property
     def w(this):
-        return this._w
+        return this._w.copy()
 
     @property
     def b(this):
         return this._b
 
 
-    def GradientUpdate(this, X, y, grad=False):
+    def GenerateGradients(this, X, y, grad=False):
         """
             This function is gonna yield all my parameters during the gradient
             descend iterations, given the samples and the labels, it does it,
@@ -61,31 +61,67 @@ class BinaryLogisticRegression:
         assert X.shape[0] == y.shape[0], \
             "The number of rows of X must equal to the number elements in y. "
         n, k = X.shape[0], X.shape[1]
+        this._w = zeros((k, 1)) if this._w is None else this._w
+        this._b = 0 if this._b is None else this._b
+        while True:
+            GradW, GradB = this._ComputeGradientFor(X, y)
+            this._w += - GradW*this._StepSize
+            this._b += - GradB*this._StepSize
+            if grad:
+                yield this.w, this.b, GradW, GradB
+            else:
+                yield this.w, this.b
+
+    def _ComputeGradientFor(this, X, y):
+        """
+            An internal method for getting the gradient given the samples
+            and the labels.
+        :param X:
+            Row data matrix.
+        :param y:
+            1d binary label vectors.
+        :return:
+        """
+        if this._b is None: raise Exception("Parameters unestablished, "
+                                            "can't compute gradient. ")
+        # Get the parameters.
+        w, b = this._w, this._b
+        n, k = X.shape[0], X.shape[1]
         y = y[:, np.newaxis]  # n by 1
-        w = zeros((k, 1)) if this._w is None else this._w           # k by 1
-        this._w = w
-        b = 0 if this._b is None else this._b
-        this._b = b
-        def Mu(w, b):
-            # This is a VECTOR function, returns a n by 1 VECTOR
-            return 1/(1 + exp(-y*(b + X@w)))
+        def Mu(w, b): # This is a VECTOR function, returns a n by 1 VECTOR
+            return 1 / (1 + exp(-y * (b + X @ w)))
 
         def gradientW(w, b):
-            v = y*(Mu(w, b) - 1)
-            return (1/n)*(X.T@v) + 2*this._Lambda*w
+            v = y * (Mu(w, b) - 1)
+            return (1 / n) * (X.T @ v) + 2 * this._Lambda * w
 
         def gradientB(w, b):
-            return mean(y*(Mu(w, b) - 1))
+            return mean(y * (Mu(w, b) - 1))
 
-        while True:
-            w_new = w - gradientW(w, b)*this._StepSize
-            b_new = b - gradientB(w, b)*this._StepSize
-            w , b = w_new, b_new
-            this._w, this._b = b_new, w_new
-            if grad:
-                yield w, b, gradientW(w, b), gradientB(w, b)
-            else:
-                yield w, b
+        return gradientW(w, b), gradientB(w, b)
+
+
+    def UpdateParametersUsing(this, X, y):
+        """
+        This function updates and returns the parameters.
+        :return:
+            The new parameter after one step of gradient descent.
+        """
+        assert type(X) is np.ndarray and type(y) is np.ndarray, \
+            "Must use numpy array to train the lasso."
+        assert len(X.shape) == 2 and len(y.shape) == 1, \
+            "X must be row data matrix," \
+            " 2d and y must be a 1d vector, numerical."
+        assert X.shape[0] == y.shape[0], \
+            "The number of rows of X must equal to the number elements in y. "
+        n, k = X.shape
+        this._w = zeros((k, 1)) if this._w is None else this._w
+        this._b = 0 if this._b is None else this._b
+        GradW, GradB = this._ComputeGradientFor(X, y)
+        this._w += - GradW * this._StepSize
+        this._b += - GradB * this._StepSize
+        return this.w, this.b
+
 
     def CurrentLoss(this, X, y):
         """
@@ -135,7 +171,7 @@ def main():
         y[N:] = -y2
         Itr = 0
         Model = BinaryLogisticRegression(stepsize=1e-1)
-        for w, b, gw, gb, in Model.GradientUpdate(X, y,grad=True):
+        for w, b, gw, gb, in Model.GenerateGradients(X, y, grad=True):
             print(f"Model.CurrentLoss(X, y): {Model.CurrentLoss(X, y)}, w: {w}, b: {b}")
             print(f"Gradient w : {norm(gw)}")
             print(f"Graident b: {norm(gb)}")
