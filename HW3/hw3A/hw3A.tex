@@ -1,0 +1,127 @@
+\documentclass[]{article}
+\usepackage{amsmath}\usepackage{amsfonts}
+\usepackage[margin=1in,footskip=0.25in]{geometry}
+\usepackage{mathtools}
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,
+    urlcolor=cyan,
+}
+\usepackage[final]{graphicx}
+\usepackage{listings}
+\usepackage{courier}
+\lstset{basicstyle=\footnotesize\ttfamily,breaklines=true}
+
+% \usepackage{wrapfig}
+\graphicspath{{.}}
+
+\begin{document}
+
+\section*{A1: Conceptual Questions}
+    \subsection*{A.1.a}
+        Decraese $\sigma$. This makes the function $\exp\left(
+            - \frac{\Vert u - v\Vert_2^2}{2\sigma^2} 
+        \right)$ thinner, make the inner product between different points more distinct. 
+    \subsection*{A.1.b}
+        True. It's an non-convex objective function, assuming thta deep means more than one hidden layer of course and assuming that activation function is not linear. 
+    \subsection*{A.1.c}
+        
+    \subsection*{A.1.d}
+        Flase, the what gives non linear decision boundary is the number of layers and the number of neurons in the layers. 
+    \subsection*{A.1.e}
+
+
+\section*{A.2: Kernels And Bootstrap}
+    Give na vector whose $n$ th components paramterized by $n$ is given by: 
+    $$
+        \frac{1}{\sqrt{n!}}\exp \left(
+            \frac{-x^2}{2}
+        \right)x^n
+    $$
+    where $x$ is one dimensional, and the feature mapping function $\phi(x)$ is an infinite dimensional function. 
+    \\
+    Then: 
+    \begin{align*}\tag{A.2.1}\label{eqn:A.2.1}
+        \langle \phi(x), \phi(y)\rangle &= 
+        \sum_{n = 1}^{\infty}
+            \phi_n(x)\phi_n{y}
+        \\
+        &= 
+        \sum_{n = 1}^{\infty}
+            \frac{1}{\sqrt{n!}} 
+            \exp \left(
+                -\frac{x^2}{2}
+            \right)x^n
+            \frac{1}{\sqrt{n!}} 
+            \exp \left(
+                -\frac{y^2}{2}
+            \right)y^n
+        \\
+        &= 
+        \sum_{n = 1}^{\infty}
+            \frac{(xy)^n}{n!}\exp\left(
+                -\frac{x^2 + y^2}{2}
+            \right)
+        \\
+        &= 
+        \exp\left(
+                -\frac{x^2 + y^2}{2}
+            \right)
+        \sum_{n = 1}^{\infty}
+        \frac{(xy)^n}{n!}
+        \\
+        &= 
+        \exp\left(
+            - \frac{x^ 2 + y^ 2}{2}
+        \right)
+        \exp\left(
+            xy
+        \right)
+        \\
+        &= 
+        \exp\left(
+            - \frac{x^ 2 + y^ 2}{2} + \frac{2xy}{2} 
+        \right)
+        \\
+        &= 
+        \exp\left(
+            \frac{-(x - y)^2}{2}
+        \right)
+    \end{align*}
+
+    And this is the RBF kernel for a scalar, in the 1d case. 
+    
+\section*{A.3: Kernel Ridge Regression}
+    \subsection*{A.3.a}
+        To implement, we will need to take care of the process of solving for the best parameter $\alpha$, and we will also need to careful about the offset. So what we are going to train is on the zero mean data, and then the prediction made from the model will have to add back the offset from the training set of course. 
+        \\
+        Here is basically what we had from the sections: 
+        \begin{align*}\tag{A.3.a}\label{eqn:A.3.a}
+            \frac{1}{2}\nabla_x[\Vert K\alpha - y\Vert_2^2 + \lambda \alpha^T K \alpha] &= 0
+            \\
+            \implies K^T(K\alpha - y) + \lambda K\alpha &= 0
+            \\
+            K(K\alpha - y) + \lambda K\alpha &= 0
+            \\
+            KK\alpha - Ky + \lambda K\alpha &= 0
+            \\
+            KK\alpha + \lambda K\alpha &= Ky
+            \\
+            K \alpha + \lambda \alpha &= y
+            \\
+            \alpha &= (K + \lambda I)^{-1}y
+        \end{align*}
+        Where, $K$ and $y$ are from the training set. And in this case, the predictor can be computed via: $\hat{y} = X_\text{test}X^T_{\text{train}}$.
+    \subsection*{A.3.b}
+        
+
+    \subsection*{A.3.c}
+    
+    \subsection*{A.3.d}
+    \subsection*{A.3.e}
+    
+    
+
+\end{document}
