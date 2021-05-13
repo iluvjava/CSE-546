@@ -115,6 +115,15 @@
         \end{align*}
         Where, $K$ and $y$ are from the training set. And in this case, the predictor can be computed via: $\hat{y} = X_\text{test}X^T_{\text{train}}$.
     \subsection*{A.3.b}
+        To train the model and get the best hyperparameter, here are some of my strategies: 
+        \begin{enumerate}
+            \item[1.] Use ``sklearn.metrics.pairwise'' to compute the kernel matrix. Cause I am lazy and stupid so I just want smart people to write the code for me. 
+            \item[2.] Use ``sklearn.modelselection'' to do cross val cause I am lazy. 
+            \item[3.] Use exactly the same training and validation for all hyper parameter traning (n = 30). And there is no test set. 
+            \item[4.] Linear search on the degree of the poly kenel, bruteforcing out the one with minimal error across the validation set. 
+            \item[5.] Section search on Gamma for the gaussian kernel. Partition a range into fine little sections, and use scipy optimizer to look for the minimal on all tiny little section. And then bruteforce out the optimal by comparing the best results from each section. Here we make the assumption that the crossval error function is at least, smooth and all of its derivatives are bonded. 
+        \end{enumerate}
+
         
     \subsection*{A.3.c}
 
