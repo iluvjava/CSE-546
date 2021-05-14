@@ -27,10 +27,11 @@
     \subsection*{A.1.b}
         True. It's an non-convex objective function, assuming thta deep means more than one hidden layer of course and assuming that activation function is not linear. 
     \subsection*{A.1.c}
-        
+        Yes it is. This ties to the fact that the Loss function of the Neural net is not convex, and if we start near all zeros, that might not be cause to the global optimal, and won't help with the traning. 
     \subsection*{A.1.d}
-        Flase, the what gives non linear decision boundary is the number of layers and the number of neurons in the layers. 
+        Flase, the what gives non linear decision boundary is the number of layers and the number of neurons in the layers, both ReLU and the Sigmoid functions is using linear decision boundary under the hood, \textbf{it's a lot of linear decision bounary combined together}. 
     \subsection*{A.1.e}
+
 
 
 \section*{A.2: Kernels And Bootstrap}
@@ -233,8 +234,8 @@ if __name__ == "__main__":
         \\
         This is the output from my code: 
         \begin{verbatim}
-            guassian kernel best is: [gamma, lambda] [172.91284562   0.21884506]
-            Poly kernel best is: [deg, lambda] (39, 0.03018816458288159)
+guassian kernel best is: [gamma, lambda] [172.91284562   0.21884506]
+Poly kernel best is: [deg, lambda] (39, 0.030a18816458288159)
         \end{verbatim}
         I think there is a balance between the regularization parameters and the kernel parameters, so the solution might not be unique. 
         \\

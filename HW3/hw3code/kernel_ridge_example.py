@@ -52,8 +52,8 @@ def main():
     def PolyKernelExample():
         X, y = GenerateXY()
 
-        Model = KernelRidge(regularizer_lambda=0.03018816458288159,
-                            kernelfunc=lambda X, Y: MyPolyKernel(X, Y, 39))
+        Model = KernelRidge(regularizer_lambda=0.0078125,
+                            kernelfunc=lambda X, Y: MyPolyKernel(X, Y, 29))
         Model.fit(X, y)
         x = np.linspace(min(X), max(X), 100)
 
@@ -66,8 +66,8 @@ def main():
     def GaussianKernelExample():
         X, y = GenerateXY()
 
-        Model = KernelRidge(regularizer_lambda=0.21884506,
-                            kernelfunc=lambda X, Y: RBFKernel(X, Y, gamma=172.91284562))
+        Model = KernelRidge(regularizer_lambda=4.41362399e-03,
+                            kernelfunc=lambda X, Y: RBFKernel(X, Y, gamma=2.99999376e+01))
         Model.fit(X, y)
         x = np.linspace(0, 1, 100)
 
