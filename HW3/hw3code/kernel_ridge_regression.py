@@ -30,6 +30,7 @@ class KernelRidge:
         this.Kernel = kernelfunc
         this.Alpha = None
         this.Bias = None
+
     @property
     def w(this):
         if this.X is None: return None

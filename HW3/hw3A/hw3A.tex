@@ -18,6 +18,9 @@
 \graphicspath{{.}}
 
 \begin{document}
+\begin{center}
+    Name: Honda Li \quad Class: CSE 546 SPRING 2021\quad HW3A
+\end{center}
 
 \section*{A1: Conceptual Questions}
     \subsection*{A.1.a}
@@ -27,12 +30,11 @@
     \subsection*{A.1.b}
         True. It's an non-convex objective function, assuming thta deep means more than one hidden layer of course and assuming that activation function is not linear. 
     \subsection*{A.1.c}
-        Yes it is. This ties to the fact that the Loss function of the Neural net is not convex, and if we start near all zeros, that might not be cause to the global optimal, and won't help with the traning. 
+        Yes it is. This ties to the fact that the Loss function of the Neural net is not convex, and if we start near all zeros, that means the first few iterations of the Gradient descent will aways get the same gradient, hugely limiting weight configuration of the model.
     \subsection*{A.1.d}
         Flase, the what gives non linear decision boundary is the number of layers and the number of neurons in the layers, both ReLU and the Sigmoid functions is using linear decision boundary under the hood, \textbf{it's a lot of linear decision bounary combined together}. 
     \subsection*{A.1.e}
-
-
+        
 
 \section*{A.2: Kernels And Bootstrap}
     Give na vector whose $n$ th components paramterized by $n$ is given by: 

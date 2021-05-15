@@ -68,16 +68,14 @@ def CrossValErrorEstimate(X, y, regualarizer, kernelfunc, split=None,param_norm=
     return mean(Errors)
 
 
-def GenerateXY(n):
-    f = lambda x: 4 * sin(pi * x) * cos(6 * pi * x ** 2)
-    x = rand(n)
-    y = f(x) + randn(n)
-    return x[:, np.newaxis], y
-
-
 def main(n=30, KfoldSplit=30):
+    f = lambda x: 4 * sin(pi * x) * cos(6 * pi * x ** 2)
+    def GenerateXY():
+        x = rand(n)
+        y = f(x) + randn(n)
+        return x[:, np.newaxis], y
 
-    X, y = GenerateXY(n)   #  THIS IS SHARED! FOR ALL
+    X, y = GenerateXY()   #  THIS IS SHARED! FOR ALL
 
     def PolyKernelHypertune():
         def GetError(deg, l):
@@ -89,7 +87,7 @@ def main(n=30, KfoldSplit=30):
                                           split=KfoldSplit)
             return Error
         Result = shgo(lambda x: GetError(x[0], x[1]),
-             bounds=[(1, 10), (0, 2*n)],
+             bounds=[(1, 30), (0, 2*n)],
              n=300, sampling_method="sobol")
         print(f"SHGO Optimization Results: {Result}")
         return Result.x
@@ -190,9 +188,8 @@ def main(n=30, KfoldSplit=30):
 
     def BoopStrapModelDifference(GaussModel, PolyModel):
         m = 1000
-        for _ in range(300):
-            Indicies = randint(0, m, m)
 
+        for _ in range(300):
             pass
 
         pass

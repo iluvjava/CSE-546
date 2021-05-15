@@ -1,0 +1,63 @@
+\documentclass[]{article}
+\usepackage{amsmath}\usepackage{amsfonts}
+\usepackage[margin=1in,footskip=0.25in]{geometry}
+\usepackage{mathtools}
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,
+    urlcolor=cyan,
+}
+\usepackage[final]{graphicx}
+\usepackage{listings}
+\usepackage{courier}
+\lstset{basicstyle=\footnotesize\ttfamily,breaklines=true}
+
+% \usepackage{wrapfig}
+\graphicspath{{.}}
+
+\begin{document}
+\begin{center}
+    Name: Honda Li \quad Class: CSE 546 SPRING 2021\quad HW3B 
+\end{center}
+
+\section*{B.1: Intro to Sample Complexity}
+    \subsection*{B.1.a}
+        Let's exam the statement: 
+        \begin{align*}\tag{B.1.a}\label{eqn:B.1.a}
+            \mathbb{P}\left[
+                \hat{R}_n(f) = 0
+            \right]
+            &= 
+            \mathbb{P}\left[
+                \frac{1}{n}\sum_{i = 1}^{n}
+                    \mathbf{1}\{
+                        f(x_i) \ne y_i
+                    \} = 0
+            \right]
+            \\
+            &= 
+            \prod_{i = 1}^{n}
+                1 - \mathbb{P}\left[
+                    f(x_i) \ne y_i
+                \right]
+        \end{align*}
+    Let's use the statement in the hypothesis. The statement was $R(f) > \epsilon$, which describes the event that $\mathbb{E}\left[\mathbf{1}\{f(x)\ne Y\}\right]$. so then $1 - R(f)$ describes exepected value of the event that: $1 - \mathbb{P}\left(f(x_i) \ne y\right)$. And notice that $1 - R(f)< 1 - \epsilon < \exp(epsilon)$, so then we can simplify the above expression into: 
+    \begin{align*}\tag{B.1.a.1}\label{eqn:B.1.a.1}
+        \prod_{i = 1}^{n}
+        1 - \mathbb{P}\left[
+            f(x_i) \ne y_i
+        \right] = (1 - R(f)) \le (\exp(\epsilon))^n = \exp(n\epsilon)
+        \\
+        \implies 
+        \mathbb{P}\left[
+            \hat{R}_n(f) = 0
+        \right] \le \exp(n\epsilon)
+    \end{align*}
+
+    \subsection*{B.1.b}    
+        
+    
+
+\end{document}
