@@ -90,7 +90,7 @@ def main(n=30, KfoldSplit=30):
              bounds=[(1, 30), (0, 2*n)],
              n=300, sampling_method="sobol")
         print(f"SHGO Optimization Results: {Result}")
-        return Result.x
+        return (Result.x[0], 0)
 
     def GaussianKernelHypertune():
         # Grid search, Fix the training sample
