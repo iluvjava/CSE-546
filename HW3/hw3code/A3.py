@@ -136,7 +136,7 @@ def main(n=30, KfoldSplit=30):
         # GRID SEARCH INITIAL GUESS
         Result = shgo(lambda x: GetError(x[0], x[1]),
                       bounds=[(GammaLower, GammaHigher), (0, 1)],
-                      n=100, sampling_method='sobol',
+                      n=500, sampling_method='sobol',
                       options={"f_tol": 1e-4, "disp": True})
         print("Optimization results: ")
         print(Result)

@@ -298,7 +298,7 @@ def main():
         return x[:, np.newaxis], y
 
     def CrossValErrorEstimate(X, y, regualarizer, kernelfunc, param_norm=False):
-        Errors = []
+        Errors = [] 
         AlphaNorm = []
         kf = KFold(n_splits=n, shuffle=False)
         for TrainIdx, TestIdx in kf.split(X):
