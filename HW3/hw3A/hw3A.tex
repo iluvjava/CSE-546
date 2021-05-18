@@ -97,33 +97,8 @@
     And this is the RBF kernel for a scalar, in the 1d case. 
     
 \section*{A.3: Kernel Ridge Regression}
-    \subsection*{A.3.a}
-        To implement, we will need to take care of the process of solving for the best parameter $\alpha$, and we will also need to careful about the offset. So what we are going to train is on the zero mean data, and then the prediction made from the model will have to add back the offset from the training set of course. 
-        \\
-        Here is basically what we had from the sections: 
-        \begin{align*}\tag{A.3.a}\label{eqn:A.3.a}
-            \frac{1}{2}\nabla_x[\Vert K\alpha - y\Vert_2^2 + \lambda \alpha^T K \alpha] &= 0
-            \\
-            \implies K^T(K\alpha - y) + \lambda K\alpha &= 0
-            \\
-            K(K\alpha - y) + \lambda K\alpha &= 0
-            \\
-            KK\alpha - Ky + \lambda K\alpha &= 0
-            \\
-            KK\alpha + \lambda K\alpha &= Ky
-            \\
-            K \alpha + \lambda \alpha &= y
-            \\
-            \alpha &= (K + \lambda I)^{-1}y
-        \end{align*}
-        Where, $K$ and $y$ are from the training set. And in this case, the predictor can be computed via: $K_{\text{test}, \text{train}}\alpha$ where the $K_{\text{test}, \text{train}}$ is computed via: 
-        $$
-            K_{i, j} = \langle \phi(X_{\text{test}}[i, :]), 
-                                \phi(X_{\text{train}}[:, j]) 
-            \rangle
-        $$
-        And this is the code I implemented for the Kenrel Ridge Regression: 
-        \begin{lstlisting}
+    For problem A.3, this is the core routine I used for the whole problem, filename: ``kernel\_ridge\_regression''
+    \begin{lstlisting}
 ### This is a script for CSE 546 SPRING 2021, HW3, A.3
 ### Implementing the kernel ridge regression and visualize some stuff.
 ### Author: Hongda Li
@@ -156,6 +131,7 @@ class KernelRidge:
         this.Kernel = kernelfunc
         this.Alpha = None
         this.Bias = None
+
     @property
     def w(this):
         if this.X is None: return None
@@ -185,7 +161,7 @@ class KernelRidge:
         K = this.Kernel(this.X, this.X)
         assert K.ndim == 2 and K.shape[0] == K.shape[1] and K.shape[0] == n, \
             "your kernel function implemention is wrong, kernel matrix is having the wrong shape"
-        assert np.all(np.abs(K-K.T) < 1e-9), "kernel matrix is not symmetric."
+        assert np.all(np.abs(K-K.T) < 1e-5), "kernel matrix is not symmetric."
         this.KernelMatrix = K
         # get the bias
 
@@ -221,29 +197,58 @@ def main():
 
 if __name__ == "__main__":
     main()
-        \end{lstlisting}
+    \end{lstlisting}
+
+    \subsection*{A.3.a}
+        To implement, we will need to take care of the process of solving for the best parameter $\alpha$, and we will also need to careful about the offset. So what we are going to train is on the zero mean data, and then the prediction made from the model will have to add back the offset from the training set of course. 
+        \\
+        Here is basically what we had from the sections: 
+        \begin{align*}\tag{A.3.a}\label{eqn:A.3.a}
+            \frac{1}{2}\nabla_x[\Vert K\alpha - y\Vert_2^2 + \lambda \alpha^T K \alpha] &= 0
+            \\
+            \implies K^T(K\alpha - y) + \lambda K\alpha &= 0
+            \\
+            K(K\alpha - y) + \lambda K\alpha &= 0
+            \\
+            KK\alpha - Ky + \lambda K\alpha &= 0
+            \\
+            KK\alpha + \lambda K\alpha &= Ky
+            \\
+            K \alpha + \lambda \alpha &= y
+            \\
+            \alpha &= (K + \lambda I)^{-1}y
+        \end{align*}
+        Where, $K$ and $y$ are from the training set. And in this case, the predictor can be computed via: $K_{\text{test}, \text{train}}\alpha$ where the $K_{\text{test}, \text{train}}$ is computed via: 
+        $$
+            K_{i, j} = \langle \phi(X_{\text{test}}[i, :]), 
+                                \phi(X_{\text{train}}[:, j]) 
+            \rangle
+        $$
+        
+        To implement the method, I used the following tricks: 
+        \begin{enumerate}
+            \item[1.] All the questions from a, b, c, d, e, are running on a fixed sample. When I do the black box optimization, and grid search for hyper parameter, I want to make the whole algorithm deterministic, given a certain sample set. 
+            \item[2.] I used a black box optimization to improve the grid search algorithm, The algorithm is SHGO, Simplicial Homology Global Optimization. It's used as a bounded non-convex optimization algorithm as a subroutine for the grid search algorithm.  
+        \end{enumerate}
+        \textbf{Note}: For 30 samples, there are a lot of variance on the models, and here is one of the hyper parameter identified by my algorithm: 
+        \begin{enumerate}
+            \item [1.] For poly kernel: $d = 28.06$, $\lambda = 0.0013477$. 
+            \item [2.] For the KBF kernel: $\gamma = 31.5238$, $\lambda = 0.001119$. 
+        \end{enumerate}
 
     \subsection*{A.3.b}
-        To train the model and get the best hyperparameter, here are some of my strategies: 
-        \begin{enumerate}
-            \item[1.] Use ``sklearn.metrics.pairwise'' to compute the kernel matrix. Cause I am lazy and stupid so I just want smart people to write the code for me. 
-            \item[2.] Use ``sklearn.modelselection'' to do cross val cause I am lazy. 
-            \item[3.] For each parameter $\gamma, \lambda$ we want to use, we draw a new set of 30 sample to test it. 
-            \item[4.] Linear search on the degree of the poly kenel, bruteforcing out the one with minimal error across the validation set. 
-            \item[5.] Section search on Gamma for the gaussian kernel. Partition a range into fine little sections, and use scipy optimizer to look for the minimal on all tiny little section. And then bruteforce out the optimal by comparing the best results from each section. Here we make the assumption that the crossval error function is at least, smooth and all of its derivatives are bonded. 
-        \end{enumerate}
-        Becase of the uncertainty of drawing the samples from the populations, best hyper parameters are just an estimate, which is not gurantee to be the same each time when we run the program. But I think it's close enough for our perposes. 
+        This is the plot I had for the particular identified hyper parameters: 
+        
+        
+    \subsection*{A.3.c}
+        
+    \subsection*{A.3.d}
+
+    \subsection*{A.3.e}
+    \subsection*{A.3.Code}
+        This is the main driver code I used for all the questions, it's quiet complicated so I have put it in the end of the section. 
         \\
-        This is the output from my code: 
-        \begin{verbatim}
-guassian kernel best is: [gamma, lambda] [172.91284562   0.21884506]
-Poly kernel best is: [deg, lambda] (39, 0.030a18816458288159)
-        \end{verbatim}
-        I think there is a balance between the regularization parameters and the kernel parameters, so the solution might not be unique. 
-        \\
-        \textbf{Note}: I tried out sone of the hyperparameter and found the best looking one. Also take note that the polynomial kernel doesn't extrapolate well. Because the larter the degree, the larger the regularization, to flatten it out, but when it goes out of the zoom of the training data, it loses its predictive ability.
-        \\
-        And here is the code for the hyperparameter search: 
+        File name: ``A3.py''
         \begin{lstlisting}
 ### This is the script that produce plots and data for A3
 ### This is for CSE 546 SPRING 2021, HW3.
@@ -253,7 +258,7 @@ Poly kernel best is: [deg, lambda] (39, 0.030a18816458288159)
 
 import numpy as np
 cos, sin, pi = np.cos, np.sin, np.pi
-rand, randn = np.random.rand, np.random.randn
+rand, randn, randint = np.random.rand, np.random.randn, np.random.randint
 norm = np.linalg.norm
 zeros = np.zeros
 mean = np.mean
@@ -262,15 +267,23 @@ min = np.min
 max = np.max
 linspace = np.linspace
 logspace = np.logspace
+percentile = np.percentile
+var = np.var
 from kernel_ridge_regression import KernelRidge
 from sklearn.metrics.pairwise import rbf_kernel, polynomial_kernel
 from sklearn.model_selection import KFold
 import matplotlib.pyplot as plt
-from scipy.optimize import minimize
+from scipy.optimize import minimize, shgo
+from scipy.optimize import Bounds
+
+### Some constant for the whole script:
+
+
+
 
 def RBFKernel(X, Y, gamma):
     """
-        X is the row data matrix.
+        Use this kernel to take the inner products between the columns of X, Y
     :param x:
     :return:
     """
@@ -280,7 +293,8 @@ def RBFKernel(X, Y, gamma):
 
 def MyPolyKernel(X, Y, d):
     """
-        X is the row data matrix.
+        Use this kernel to take the inner product between the columns of the X, Y
+        matrix.
     :param x:
     :return:
     """
@@ -288,111 +302,256 @@ def MyPolyKernel(X, Y, d):
     return polynomial_kernel(X, Y, gamma=1, degree=d)
 
 
-def main():
-    n = 30w # Global
+def CrossValErrorEstimate(X, y, regualarizer, kernelfunc, split=None,param_norm=False):
+    Errors = []
+    AlphaNorm = []
+    if split is None:
+        split = X.shape[0]
+    kf = KFold(n_splits=split, shuffle=False) # Make it deterministic given the same training sample.
+
+    for TrainIdx, TestIdx in kf.split(X):
+        Model = KernelRidge(regularizer_lambda=regualarizer, kernelfunc=kernelfunc)
+        Model.fit(X[TrainIdx], y[TrainIdx])
+        yhat = Model.predict(X[TestIdx]).reshape(-1)
+        Error = (sum(yhat - y[TestIdx])**2)/len(TestIdx)
+        Errors.append(Error)
+        AlphaNorm.append(norm(Model.w, np.inf))
+    if param_norm:
+        return mean(Errors), min(AlphaNorm)
+    return mean(Errors)
+
+
+def GenerateXY(n):
     f = lambda x: 4 * sin(pi * x) * cos(6 * pi * x ** 2)
+    x = rand(n)
+    x.sort()
+    y = f(x) + randn(n)
+    return x[:, np.newaxis], y
 
-    def GenerateXY():
-        x = rand(n)
-        y = f(x) + randn(n)
-        return x[:, np.newaxis], y
 
-    def CrossValErrorEstimate(X, y, regualarizer, kernelfunc, param_norm=False):
-        Errors = [] 
-        AlphaNorm = []
-        kf = KFold(n_splits=n, shuffle=False)
-        for TrainIdx, TestIdx in kf.split(X):
-            Model = KernelRidge(regularizer_lambda=regualarizer, kernelfunc=kernelfunc)
-            Model.fit(X[TrainIdx], y[TrainIdx])
-            yhat = Model.predict(X[TestIdx])
-            Error = sum(yhat - y[TestIdx])**2
-            Errors.append(Error)
-            AlphaNorm.append(norm(Model.w, np.inf))
-        if param_norm:
-            return mean(Errors), min(AlphaNorm)
-        return mean(Errors)
-
-    def PolyKernlExample():
-        X, y = GenerateXY()
-
-        Model = KernelRidge(regularizer_lambda=0,
-                            kernelfunc=lambda X, Y: MyPolyKernel(X, Y, 20))
-        Model.fit(X, y)
-        x = np.linspace(0, 1, 1000)
-
-        yhat = Model.predict(x[:, np.newaxis])
-        plt.scatter(X.reshape(-1), y, c="red")
-        plt.plot(x, yhat)
-        plt.show()
-
-    PolyKernlExample()
-
+def main(n=30, KfoldSplit=30):
+    X, y = GenerateXY(n)   #  THIS IS SHARED! FOR ALL
+    f = lambda x: 4 * sin(pi * x) * cos(6 * pi * x ** 2)
     def PolyKernelHypertune():
-        MaxDegree = 40
-        BestParameter = None
-        SmallestError = float("inf")
-        Errors = {}
-        for degree in range(1, MaxDegree + 1):
-            Lambda = 2**(-10)
-            while True:
-                X, y = GenerateXY()
-                Error, AlphaNorm = CrossValErrorEstimate(
-                    X, y, Lambda, lambda X, Y: MyPolyKernel(X, Y, degree), True
-                )
-                Errors[Lambda, degree] = Error
-                if Error < SmallestError:
-                    SmallestError = Error
-                    BestParameter = (degree, Lambda)
-                    print(f"Best param updated [deg, lambda]:{BestParameter} ")
-                if AlphaNorm < 1e-4:
-                    break
-                Lambda *= 1.1
-        print(f"Best hyperparam Seems to be: {BestParameter}")
-        return BestParameter
+        def GetError(deg, l):
+            Kernefun = lambda x, y: MyPolyKernel(x, y, deg)
+            Error = CrossValErrorEstimate(X,
+                                          y,
+                                          regualarizer=l,
+                                          kernelfunc=Kernefun,
+                                          split=KfoldSplit)
+            return Error
+        BestError = float("inf")
+        Best = None
+        for Deg in np.linspace(7, 31):
+            Result = shgo(lambda x: GetError(Deg, x),
+                bounds=[(0, 0.05)],
+                n=100,
+                sampling_method="simplicial",
+                options={"f_tol": 1e-8}
+                          )
+            if Result.fun < BestError:
+                print(f"Poly Kernel Best error update for deg: {Deg}, Lambda: {Result.x}, Error: {Result.fun}")
+                BestError = Result.fun
+                Best = (Deg, Result.x[0])
+            else:
+                print(f"failed at: deg: {Deg}, Lambda: {Result.x[0]}, Error: {Result.fun}")
 
-    def GuassianKernelHypertune():
+        # Result = shgo(lambda x: GetError(x, 0),
+        #      bounds=[(1, 100)],
+        #      n=200, sampling_method="simplicial",
+        #               options={"f_tol": 1e-8, "disp": True})
+        # print(f"SHGO Optimization Results: {Result}")
+        return Best
+
+    def GaussianKernelHypertune():
         # Grid search, Fix the training sample
-        X, y = GenerateXY()
+        # X, y = GenerateXY()
+        Xs = X.reshape(-1)
+        Distance = []
+        for II in range(Xs.size):
+            for JJ in range(II + 1, Xs.size):
+                Distance.append(1/(norm(Xs[II] - Xs[JJ])**2))
+        GammaLower, GammaHigher = \
+            percentile(Distance, 25), percentile(Distance, 75)
+        print(f"Hypertune Gamma kernel search range: {GammaLower, GammaHigher}")
         def GetError(gamma, l):
             l, gamma = abs(l), abs(gamma)
             Kernelfun = lambda x, y: RBFKernel(x,y, gamma=gamma)
-            Error = CrossValErrorEstimate(X, y, regualarizer=l, kernelfunc=Kernelfun)
+            Error = CrossValErrorEstimate(X,
+                                          y,
+                                          regualarizer=l,
+                                          kernelfunc=Kernelfun,
+                                          split=KfoldSplit
+                                          )
             return Error
-        # A bunch of guesses!
-        Gammas, Lambdas = linspace(0, 30, 10), logspace(-10, 0, num=2, base=2)
-        BestError = float("inf")
-        BestParams = None
-        for gammastart, gammaend in zip(Gammas[:-1], Gammas[1:]):
-            GammaGuess = (gammastart + gammaend)/2
-            for lstart, lend in zip(Lambdas[:-1], Lambdas[1:]):
-                LambdaGuess = (lstart + lend)/2
-                Res = minimize(lambda x: GetError(x[0], x[1]),
-                               np.array([GammaGuess, LambdaGuess]))
-                Xmin = Res.x
-                Fval = Res.fun
-                if Fval < BestError:
-                    BestError = Fval
-                    BestParams = np.abs(Xmin)
-                    print(f"Best parem updated, [gamma, lambda] {BestParams}")
-        print(f"Guassian Bestparams: {BestParams}")
-        return BestParams
-    GaussianBest = GuassianKernelHypertune()
+        # GRID SEARCH INITIAL GUESS
+        Result = shgo(lambda x: GetError(x[0], x[1]),
+                      bounds=[(GammaLower, GammaHigher), (0, 1)],
+                      n=500, sampling_method='sobol',
+                      options={"f_tol": 1e-4, "disp": True})
+        print("Optimization results: ")
+        print(Result)
+        print(f"Guassian Bestparams: {Result.x}")
+        return Result.x
+    # ============ Hyper Param! ================================================
+    GaussianBest = [20, 0.058]
+    PolyBest = [19, 0.05]
+
+    GaussianBest = GaussianKernelHypertune()
     PolyBest = PolyKernelHypertune()
+
     print(f"guassian kernel best is: [gamma, lambda] {GaussianBest}")
     print(f"Poly kernel best is: [deg, lambda] {PolyBest}")
+
+    def DrawPolyModel():
+        x = linspace(0, 1, 1000)
+        Model = KernelRidge(regularizer_lambda=PolyBest[1],
+                            kernelfunc=
+                            lambda X, Y: MyPolyKernel(X, Y, PolyBest[0]))
+        Model.fit(X, y)
+        plt.ylim([max(y)*1.1, min(y)*1.1])
+        plt.plot(x, Model.predict(x[:, np.newaxis]).reshape(-1))
+        plt.plot(x, f(x))
+        plt.scatter(X.reshape(-1), y, c="red")
+        plt.title(f"poly kernel ridge regression\n "
+                  f"degree: {PolyBest[0]}, lambda: {PolyBest[1]}")
+        plt.xlabel("x")
+        plt.ylabel("y")
+        plt.legend(["Poly", "Truth", "Data Points"])
+        plt.savefig("A3b-poly.png")
+        plt.show()
+        return Model
+
+    BestPolyModel = DrawPolyModel()
+
+    def DrawGuassianModel():
+        x = linspace(0, 1, 1000)
+        Model = KernelRidge(regularizer_lambda=GaussianBest[1],
+                            kernelfunc=
+                            lambda X, Y: RBFKernel(X, Y, GaussianBest[0])
+                            )
+        Model.fit(X, y)
+        plt.ylim([min(y)*1.1, max(y)*1.1])
+        plt.plot(x, Model.predict(x[:, np.newaxis]).reshape(-1))
+        plt.plot(x, f(x))
+        plt.scatter(X.reshape(-1), y, c="red")
+        plt.title(f"guassian kernel ridge regression\n "
+                  f"gamma: {GaussianBest[0]}, lambda: {GaussianBest[1]}")
+        plt.xlabel("x")
+        plt.ylabel("y")
+        plt.legend(["Gaussian", "Truth", "Data Points"])
+        plt.savefig("A3b-gauss.png")
+        plt.show()
+        return Model
+
+    BestGaussianModel = DrawGuassianModel()
+
+    # --------------------------------------------------------------------------
+    # Boopstrap and estimating the confident interval.
+
+    def BoopStraping(Kernelfunc, Lambda, x):
+        # Given the kernel func, produce the confidence interval.
+        BagOfModels = []
+        UpperPercentile = []
+        LowerPercentile = []
+        print("Boopstraping fitting the model")
+        for _ in range(300):
+            Indices = randint(0, n, 30)
+            XTild, Ytild = X[Indices], y[Indices]
+            Model = KernelRidge(
+                kernelfunc=Kernelfunc,
+                regularizer_lambda=Lambda
+            )
+            Model.fit(XTild, Ytild)
+            BagOfModels.append(Model)
+        ModelPredictions = np.array(
+            [Model.predict(x[:, np.newaxis]).reshape(-1) for Model in BagOfModels])
+
+        for II in range(ModelPredictions.shape[1]):
+            UpperPercentile.append(percentile(ModelPredictions[:, II], 95))
+            LowerPercentile.append(percentile(ModelPredictions[:, II], 5))
+
+        return UpperPercentile, LowerPercentile
+
+    def BoopStrapModelDifference(GaussModel, PolyModel):
+        m = 1000
+        X, y = GenerateXY(m)
+        AllMeanDiff = []
+        print("solving A3(e)")
+        for _ in range(300):
+            Idx = randint(0, m, m)
+            Idx.sort()
+            Idx = np.unique(Idx)
+            Xtild, ytild = X[Idx], y[Idx]
+            yhat1 = GaussModel.predict(Xtild).reshape(-1)
+            yhat2 = PolyModel.predict(Xtild).reshape(-1)
+            Var1 = var(yhat1 - ytild)
+            Var2 = var(yhat2 - ytild)
+            AllMeanDiff.append(Var2 - Var1)
+            print(f"Bootstrap sample: {_}, The difference of MSE is: {AllMeanDiff[-1]}")
+        UpperPercentile, LowerPercentile =\
+            percentile(AllMeanDiff, 95), percentile(AllMeanDiff, 5)
+        return LowerPercentile, UpperPercentile
+
+
+    Xgrid = linspace(0, 1, 100)
+    UpperPercentile, LowerPercentile = BoopStraping(
+        lambda x, y: MyPolyKernel(x, y, PolyBest[0]),
+        PolyBest[1], Xgrid
+    )
+    # Plot the polynomial Boop strap,
+    plt.title("Bootstrap Confident bands for Poly Kernel Ridge Regression\n "
+              f"Degree: {round(PolyBest[0], 3)}, Lambda: {round(PolyBest[1], 3)}, 95, 5 % interval")
+    # plt.plot(Xgrid, UpperPercentile)
+    # plt.plot(Xgrid, LowerPercentile)
+    plt.ylim([max(y) * 1.1, min(y) * 1.1])
+    plt.plot(Xgrid, BestPolyModel.predict(Xgrid[:, np.newaxis]))
+    plt.plot(Xgrid, f(Xgrid))
+    plt.fill_between(Xgrid, UpperPercentile, LowerPercentile, color='b', alpha=.1)
+    plt.scatter(X.reshape(-1), y, c="red")
+    plt.legend(["poly", "truth", "confidentband", "data"])
+    plt.savefig("Poly-boopstraped.png")
+    plt.show()
+    ## Plot the Gaussian Boopstrap
+    UpperPercentile, LowerPercentile = BoopStraping(
+        lambda x, y: RBFKernel(x, y, GaussianBest[0]),
+        GaussianBest[1], Xgrid
+    )
+    plt.title("Bootsrap Confident Bands for Gaussian Kernel Ridge Regression\n"
+              f"Gamma: {round(GaussianBest[0], 3)}, Lambda: {round(GaussianBest[1], 3)}, 95, 5 % interval")
+    # plt.plot(Xgrid, UpperPercentile)
+    # plt.plot(Xgrid, LowerPercentile)
+    plt.ylim([max(y) * 1.1, min(y) * 1.1])
+    plt.plot(Xgrid, BestGaussianModel.predict(Xgrid[:, np.newaxis]))
+    plt.plot(Xgrid, f(Xgrid))
+    plt.fill_between(Xgrid, UpperPercentile, LowerPercentile, color='b', alpha=.1)
+    plt.scatter(X.reshape(-1), y, c="red")
+    plt.legend(["guassian", "truth", "confidentband", "data"])
+    plt.savefig("gaussian-boopstraped.png")
+    plt.show()
+
+    # A3 Part (e). Additional Boopstrap to compare the models.
+    if n == 300 and KfoldSplit == 10:
+        print("For A3 (e) we are going to use the idea of "
+              "boopstrap to find the confidence interval of the"
+              " best MSE model minus the Poly Model ")
+
+        LowerPercentile, UpperPercentile = \
+            BoopStrapModelDifference(BestGaussianModel, BestPolyModel)
+        print(f"The Upper and lower bound of the confidence interval is:"
+              f" {LowerPercentile, UpperPercentile}")
+        with open("goodplots/A3e.txt", "a") as file:
+            file.write(f"Upper, Lower bound: {LowerPercentile, UpperPercentile}")
 
 
 
 if __name__ == "__main__":
-    main()
+    import os
+    print(f"cwd: {os.getcwd()}")
+    main(n=300, KfoldSplit=10)
+    #main()
         \end{lstlisting}
-        
-    \subsection*{A.3.c}
-        
-    \subsection*{A.3.d}
-
-    \subsection*{A.3.e}
-    
     
 
 \end{document}
