@@ -98,7 +98,7 @@
     
 \section*{A.3: Kernel Ridge Regression}
     For problem A.3, this is the core routine I used for the whole problem, filename: ``kernel\_ridge\_regression''
-    \begin{lstlisting}
+    \begin{lstlisting}[language=python]
 ### This is a script for CSE 546 SPRING 2021, HW3, A.3
 ### Implementing the kernel ridge regression and visualize some stuff.
 ### Author: Hongda Li
@@ -198,7 +198,6 @@ def main():
 if __name__ == "__main__":
     main()
     \end{lstlisting}
-
     \subsection*{A.3.a}
         To implement, we will need to take care of the process of solving for the best parameter $\alpha$, and we will also need to careful about the offset. So what we are going to train is on the zero mean data, and then the prediction made from the model will have to add back the offset from the training set of course. 
         \\
@@ -229,7 +228,9 @@ if __name__ == "__main__":
         \begin{enumerate}
             \item[1.] All the questions from a, b, c, d, e, are running on a fixed sample. When I do the black box optimization, and grid search for hyper parameter, I want to make the whole algorithm deterministic, given a certain sample set. 
             \item[2.] I used a black box optimization to improve the grid search algorithm, The algorithm is SHGO, Simplicial Homology Global Optimization. It's used as a bounded non-convex optimization algorithm as a subroutine for the grid search algorithm.  
+            \item[3.] I used the footnote information to narrow down the serach for the parameters of the Guassian model.  
         \end{enumerate}
+        \textbf{Note}: That hyperparameter search algorithm I wrote runs forever. 
         \textbf{Note}: For 30 samples, there are a lot of variance on the models, and here is one of the hyper parameter identified by my algorithm: 
         \begin{enumerate}
             \item [1.] For poly kernel: $d = 28.06$, $\lambda = 0.0013477$. 
@@ -238,18 +239,47 @@ if __name__ == "__main__":
 
     \subsection*{A.3.b}
         This is the plot I had for the particular identified hyper parameters: 
-        
+        \begin{center}
+            \includegraphics*[width=12cm]{A3b-poly.png}
+        \end{center}
+        \begin{center}
+            \includegraphics*[width=12cm]{A3b-gauss.png}
+        \end{center}
         
     \subsection*{A.3.c}
-        
+        For building the boopstrap, this is something about the implementation that I think it's worth noting: 
+        \begin{enumerate}
+            \item [1.] I am still using the same set of samples that produces the hyperparameters. 
+            \item [2.] Because of huge variance for the poly model at the boundary of the data set, I have to scale the graph so that we can see what is happening, instead of zooming out like crazy. 
+        \end{enumerate}
+        Here is the graph for both the model: 
+        \begin{center}
+            \includegraphics*[width=12cm]{Poly-boopstraped.png}
+        \end{center}
+        \begin{center}
+            \includegraphics*[width=12cm]{gaussian-boopstraped.png}
+        \end{center}
+        And there are a lot of variance. Very dependent on the sample too. 
     \subsection*{A.3.d}
-
+        This is the repeated experiement with a sample size of $300$ and a $10$ Fold cross validation: 
+        \begin{center}
+            \includegraphics[width=10cm]{hypertune300/A3b-poly.png}
+            \includegraphics[width=10cm]{hypertune300/A3b-gauss.png}
+        \end{center}
+        And this is the confident bands I placed on these models: 
+        \begin{center}
+            \includegraphics[width=10cm]{hypertune300/gaussian-boopstraped.png}
+            \includegraphics[width=10cm]{hypertune300/Poly-boopstraped.png}
+        \end{center}
     \subsection*{A.3.e}
+        And for those 2 particular models I got on the previous part for the problem, I ran the algorithm and bootstrapped the difference, and it turns out that this is the confident interval for the L2 norm error difference: 
+        $$(0.08477231069630578, 0.15565650293476457)$$
+        And it's larger than zero for both upper and lower bound. Therefore, the conclusion is that, the polynomial model is having a larger error. 
     \subsection*{A.3.Code}
         This is the main driver code I used for all the questions, it's quiet complicated so I have put it in the end of the section. 
         \\
         File name: ``A3.py''
-        \begin{lstlisting}
+        \begin{lstlisting}[language=python]
 ### This is the script that produce plots and data for A3
 ### This is for CSE 546 SPRING 2021, HW3.
 ### Author: Hongda Alto Li
@@ -552,6 +582,13 @@ if __name__ == "__main__":
     main(n=300, KfoldSplit=10)
     #main()
         \end{lstlisting}
-    
+\section*{A.4: Neural Networks for MNIST}
+    \subsection*{A.4.a}
+        This is the graph I had for this problem: 
+    \subsection*{A.4.b} 
+    \subsection*{A.4.code}
 
+
+    
+        
 \end{document}
