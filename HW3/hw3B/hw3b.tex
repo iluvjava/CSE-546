@@ -57,7 +57,52 @@
     \end{align*}
 
     \subsection*{B.1.b}    
+        The results from the previous involves the hypothesis that $R(f)\ge \epsilon$, the theoretical risk of the model is larger than $\epsilon$, therefore, under a larger scope the more appropriate inequality to make should be: 
+        \begin{align*}\tag{B.1.b.1}\label{eqn:B.1.b.1}
+            \mathbb{P}\left[
+                \hat{R}_n(f) = 0\wedge R(f) \ge \epsilon
+            \right] \le \exp(-n\epsilon)
+        \end{align*}
+        For the proof, let's start with the following statement: 
+        \begin{align*}\tag{B.1.b.2}\label{eqn:B.1.b.2}
+            \mathbb{P}\left[
+                f(f) > \epsilon \wedge \hat{R}_n(f) = 0
+            \right] &= 
+            \mathbb{P}\left[\left.
+                \hat{R}_n(f) = 0 \right|R(f) > \epsilon
+            \right]\mathbb{P}\left[
+                R(f)> \epsilon
+            \right]
+            \\
+            \implies \mathbb{P}\left[
+                f(f) > \epsilon \wedge \hat{R}_n(f) = 0
+            \right]&\le \mathbb{P}\left[\left.
+                \hat{R}_n(f) = 0 \right|R(f) > \epsilon
+            \right] \le \exp(-n\epsilon)
+        \end{align*}
+        Now, the statement $\exists f\in \mathcal{F}: R(f)> \epsilon \wedge \hat{R}_n(f) = 0$ implies that occurence of at least one events, occurence of many events is the includes the case of at least one event, therefore we can say that: 
+        \begin{align*}\tag{B.1.b.3}\label{eqn:B.1.b.3}
+            \mathbb{P}\left[
+                \exists f \in \mathcal{F}: R(f) > \epsilon \wedge \hat{R}_n(f) = 0 
+            \right] 
+            &\le 
+            \mathbb{P}\left[
+                \bigcup_{f\in \mathcal{F}} \left\lbrace 
+                R(f) > \epsilon \wedge \hat{R}_n(f) = 0
+                \right\rbrace
+            \right]
+            \\
+            &\underset{\text{Union Bound}}{\le}
+            \sum_{f\in \mathcal{F}}^{}
+            \mathbb{P}\left[
+                R(f) > \epsilon \wedge \hat{R}_n(f) = 0
+            \right]
+            \\
+            &\le\left|
+                \mathcal{F}
+            \right|\exp(-n\epsilon)
+        \end{align*}
+    \section*{B.1.c}
         
-    
 
 \end{document}

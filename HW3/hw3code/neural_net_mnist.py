@@ -22,6 +22,7 @@ MNIST_TRAIN = datasets.MNIST(root="./data",
                              train=True,
                              download=True,
                              transform=transforms.ToTensor())
+# MNIST_TRAIN = torch.utils.data.Subset(MNIST_TRAIN, range(1000))
 MNIST_TEST = datasets.MNIST(root="./data",
                             train=False,
                             download=True,
@@ -149,7 +150,7 @@ def main():
         TestAccuracy = Accuracy(Model.predict(X), y)
         print(f"Test set accuracy is: {TestAccuracy}")
         plt.plot(EpochLosses)
-        plt.title("A4a-Cross Entropy Loss at each Epochs")
+        plt.title(f"A4{part}-Cross Entropy Loss at each Epochs")
         plt.xlabel("Epochs")
         plt.ylabel("Entropy Loss")
         plt.savefig(f"A4({part})-NN-mnist.png")
@@ -160,18 +161,13 @@ def main():
     Optimizer = optim.Adam(Model.parameters, lr=0.01)
     Rate = RunMNIST(Model, Optimizer, part="a")
     with open("A4a.txt", "w+") as f:
-        f.write(Rate)
+        f.write(str(Rate))
 
     Model = MyNN(MyNN.A4b)
     Optimizer = optim.Adam(Model.parameters, lr=0.01)
     Rate = RunMNIST(Model, Optimizer, part="b")
     with open("A4b.txt", "w+") as f:
-        f.write(Rate)
-
-
-
-
-
+        f.write(str(Rate))
 
 
 if __name__ == "__main__":
