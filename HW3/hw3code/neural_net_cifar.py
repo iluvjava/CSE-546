@@ -38,7 +38,7 @@ CIFAR_TEST = datasets.CIFAR10(root="./data",
                              download=True,
                              transform=TRANSFORMS["test"])
 CIFAR_TRAIN, CIFAR_VAL = \
-     torch.utils.data.random_split(CIFAR_TRAIN, [45000, 50000 - 45000])
+     torch.utils.data.random_split(CIFAR_TRAIN, [45000, 50000 - 45000],transforms=TRANSFORMS)
 # CIFAR_TRAIN, CIFAR_VAL = torch.utils.data.Subset(CIFAR_TRAIN, range(0, 5000, 3)),\
 #                          torch.utils.data.Subset(CIFAR_TRAIN, range(1, 5000, 3))
 CLASSES = \
@@ -85,7 +85,7 @@ def Run(finetune:bool, batchsize:int, epochs:int):
                                          batch_size=BatchSize)
     TestSet = torch.utils.data.DataLoader(CIFAR_TEST, batch_size=BatchSize)
     ValTotal = len(ValSet)*BatchSize
-    Optimizer = optim.RMSprop(Model.Parameters, lr=0.1/BatchSize)
+    Optimizer = optim.RMSprop(Model.Parameters, lr=0.0001)
     Epochs = epochs
     TrainLosses, ValLosses, TrainAccuracy, ValAccuracy = [], [], [], []
     BestModel, BestAccuracy = None, 0
@@ -143,13 +143,13 @@ def Run(finetune:bool, batchsize:int, epochs:int):
             TestAcc += torch.sum(Model.predict(X).to("cpu") == y)/len(CIFAR_TEST)
     print(f"TestAcc: {TestAcc}")
     with open("a5-test-acc.txt", "w+") as f:
-        f.write(TestAcc)
+        f.write(str(TestAcc))
     return Model
 
 
 def main():
-    Run(True, 100, epochs=30)
-    Run(False, 500, epochs=20)
+    Run(False, 100, epochs=40)
+    Run(True, 100, epochs=40)
 
 if __name__ == "__main__":
     import os
