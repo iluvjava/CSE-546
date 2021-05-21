@@ -139,14 +139,14 @@ def Run(finetune:bool, batchsize:int, epochs:int):
         with torch.no_grad():
             TestAcc += torch.sum(Model.predict(X).to("cpu") == y)/len(CIFAR_TEST)
     print(f"TestAcc: {TestAcc}")
-    with open("a5-test-acc.txt") as f:
+    with open("a5-test-acc.txt", "w+") as f:
         f.write(TestAcc)
     return Model
 
 
 def main():
-    Run(False, 500, epochs=20)
     Run(True, 100, epochs=30)
+    Run(False, 500, epochs=20)
 
 if __name__ == "__main__":
     import os
