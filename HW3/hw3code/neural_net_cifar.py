@@ -1,3 +1,6 @@
+# This is for CSE SPRING 2021 hw3, A5
+# Name: Hongda Li, collaborated with Zihao Zhou
+
 import torch
 import torchvision
 datasets = torchvision.datasets
