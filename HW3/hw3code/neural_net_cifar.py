@@ -35,9 +35,9 @@ CIFAR_TEST = datasets.CIFAR10(root="./data",
                              download=True,
                              transform=TRANSFORMS["test"])
 CIFAR_TRAIN, CIFAR_VAL = \
-     torch.utils.data.random_split(CIFAR_TRAIN, [5000, 50000 - 5000])
-CIFAR_TRAIN, CIFAR_VAL = torch.utils.data.Subset(CIFAR_TRAIN, range(0, 5000, 3)),\
-                         torch.utils.data.Subset(CIFAR_TRAIN, range(1, 5000, 3))
+     torch.utils.data.random_split(CIFAR_TRAIN, [45000, 50000 - 45000])
+# CIFAR_TRAIN, CIFAR_VAL = torch.utils.data.Subset(CIFAR_TRAIN, range(0, 5000, 3)),\
+#                          torch.utils.data.Subset(CIFAR_TRAIN, range(1, 5000, 3))
 CLASSES = \
     ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
 
@@ -72,8 +72,8 @@ class MyCifar:
         return this.Model.classifier[-1].parameters()
 
 
-def Run(finetune:bool, batchsize:int):
-    Model = MyCifar(finetune=True)
+def Run(finetune:bool, batchsize:int, epochs:int):
+    Model = MyCifar(finetune=finetune)
     BatchSize = batchsize
     TrainSet = torch.utils.data.DataLoader(CIFAR_TRAIN,
                                             batch_size=BatchSize)
@@ -83,7 +83,7 @@ def Run(finetune:bool, batchsize:int):
     TestSet = torch.utils.data.DataLoader(CIFAR_TEST, batch_size=BatchSize)
     ValTotal = len(ValSet)*BatchSize
     Optimizer = optim.RMSprop(Model.Parameters, lr=0.1/BatchSize)
-    Epochs = 30
+    Epochs = epochs
     TrainLosses, ValLosses, TrainAccuracy, ValAccuracy = [], [], [], []
     BestModel, BestAccuracy = None, 0
     for II in range(Epochs):
@@ -145,8 +145,8 @@ def Run(finetune:bool, batchsize:int):
 
 
 def main():
-    Run(False, 100)
-    Run(True, 50)
+    Run(False, 500, epochs=20)
+    Run(True, 100, epochs=30)
 
 if __name__ == "__main__":
     import os
