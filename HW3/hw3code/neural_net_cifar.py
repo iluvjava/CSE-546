@@ -36,8 +36,8 @@ CIFAR_TEST = datasets.CIFAR10(root="./data",
                              transform=TRANSFORMS["test"])
 CIFAR_TRAIN, CIFAR_VAL = \
      torch.utils.data.random_split(CIFAR_TRAIN, [5000, 50000 - 5000])
-# CIFAR_TRAIN, CIFAR_VAL = torch.utils.data.Subset(CIFAR_TRAIN, range(0, 5000, 3)),\
-#                          torch.utils.data.Subset(CIFAR_TRAIN, range(1, 5000, 3))
+CIFAR_TRAIN, CIFAR_VAL = torch.utils.data.Subset(CIFAR_TRAIN, range(0, 5000, 3)),\
+                         torch.utils.data.Subset(CIFAR_TRAIN, range(1, 5000, 3))
 CLASSES = \
     ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
 
@@ -72,9 +72,9 @@ class MyCifar:
         return this.Model.classifier[-1].parameters()
 
 
-def main():
+def Run(finetune:bool, batchsize:int):
     Model = MyCifar(finetune=True)
-    BatchSize = 100
+    BatchSize = batchsize
     TrainSet = torch.utils.data.DataLoader(CIFAR_TRAIN,
                                             batch_size=BatchSize)
     TrainTotal = len(TrainSet)*BatchSize
@@ -95,7 +95,7 @@ def main():
             Optimizer.step()
             with torch.no_grad():
                 AvgLoss += float(Model.FeedForward(X, y)) / len(TrainSet)
-                Correct += float(torch.sum(Model.predict(X).to("cpu") == y)/TrainTotal)
+                Correct += float(torch.sum(Model.predict(X).to("cpu") == y))/TrainTotal
         TrainLosses.append(AvgLoss)
         TrainAccuracy.append(Correct)
         print(f"Epoch: {II}, Train Loss: {AvgLoss}, Train Acc: {TrainAccuracy[-1]}", end="; ")
@@ -103,7 +103,7 @@ def main():
         for X, y in ValSet:
             with torch.no_grad():
                 Loss = Model.FeedForward(X, y)
-                Correct += float(torch.sum(Model.predict(X).to("cpu") == y)/ValTotal)
+                Correct += float(torch.sum(Model.predict(X).to("cpu") == y))/ValTotal
             AvgLoss += float(Loss)/len(ValSet)
         ValAccuracy.append(Correct)
         ValLosses.append(AvgLoss)
@@ -116,18 +116,18 @@ def main():
     plt.plot(TrainLosses)
     plt.plot(ValLosses)
     plt.legend(["Train Loss", "Val Loss"])
-    plt.title("Train and Validation Loss")
+    plt.title(f"Train and Validation Loss, finetune: {finetune}")
     plt.xlabel("Epoch")
-    plt.savefig("A5a-train-val-loss.png")
+    plt.savefig(f"A5a-train-val-loss-{finetune}.png")
     plt.show()
 
     # Plot train val acc
     plt.plot(TrainAccuracy)
     plt.plot(ValAccuracy)
     plt.legend(["Train Acc", "Val Acc"])
-    plt.title("Train and Validation Accuracy")
+    plt.title(f"Train and Validation Accuracy, finetune: {finetune}")
     plt.xlabel("Epoch")
-    plt.savefig("A5a-train-val-acc.png")
+    plt.savefig(f"A5a-train-val-acc-{finetune}.png")
     plt.show()
 
     # Test Accuracy
@@ -142,6 +142,11 @@ def main():
     with open("a5-test-acc.txt") as f:
         f.write(TestAcc)
     return Model
+
+
+def main():
+    Run(False, 100)
+    Run(True, 50)
 
 if __name__ == "__main__":
     import os
