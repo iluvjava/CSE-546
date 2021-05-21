@@ -12,14 +12,14 @@ optim = torch.optim
 import matplotlib.pyplot as plt
 import copy
 
-TRANSFORMS  = {
+TRANSFORMS = {
     'train': transforms.Compose([
         transforms.RandomResizedCrop(224),
         transforms.RandomHorizontalFlip(),
         transforms.ToTensor(),
         transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
     ]),
-    'test': transforms.Compose([
+    'val': transforms.Compose([
         transforms.Resize(256),
         transforms.CenterCrop(224),
         transforms.ToTensor(),
@@ -32,15 +32,19 @@ DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 CIFAR_TRAIN = datasets.CIFAR10(root="./data",
                              train=True,
                              download=True,
-                             transform=TRANSFORMS["train"])
+                             transform=TRANSFORMS["val"])
 CIFAR_TEST = datasets.CIFAR10(root="./data",
                              train=True,
                              download=True,
-                             transform=TRANSFORMS["test"])
-CIFAR_TRAIN, CIFAR_VAL = \
-     torch.utils.data.random_split(CIFAR_TRAIN, [45000, 50000 - 45000],transforms=TRANSFORMS)
-# CIFAR_TRAIN, CIFAR_VAL = torch.utils.data.Subset(CIFAR_TRAIN, range(0, 5000, 3)),\
-#                          torch.utils.data.Subset(CIFAR_TRAIN, range(1, 5000, 3))
+                             transform=TRANSFORMS["val"])
+# CIFAR_TRAIN, CIFAR_VAL = \
+#      torch.utils.data.random_split(CIFAR_TRAIN,
+#                                    [45000, 50000 - 45000],
+#                                    transforms=TRANSFORMS["train"])
+CIFAR_TRAIN, CIFAR_VAL = torch.utils.data.Subset(CIFAR_TRAIN,
+                                                 range(0, 5000, 2)),\
+                         torch.utils.data.Subset(CIFAR_TRAIN,
+                                                 range(1, 5000, 2))
 CLASSES = \
     ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
 
@@ -85,7 +89,7 @@ def Run(finetune:bool, batchsize:int, epochs:int):
                                          batch_size=BatchSize)
     TestSet = torch.utils.data.DataLoader(CIFAR_TEST, batch_size=BatchSize)
     ValTotal = len(ValSet)*BatchSize
-    Optimizer = optim.RMSprop(Model.Parameters, lr=0.0001)
+    Optimizer = optim.Adam(Model.Parameters, lr=0.1/len(TrainSet))
     Epochs = epochs
     TrainLosses, ValLosses, TrainAccuracy, ValAccuracy = [], [], [], []
     BestModel, BestAccuracy = None, 0
@@ -97,7 +101,7 @@ def Run(finetune:bool, batchsize:int, epochs:int):
             Loss.backward()
             Optimizer.step()
             with torch.no_grad():
-                AvgLoss += float(Model.FeedForward(X, y)) / len(TrainSet)
+                AvgLoss += float(Model.FeedForward(X, y)) / TrainTotal
                 Correct += float(torch.sum(Model.predict(X).to("cpu") == y))/TrainTotal
         TrainLosses.append(AvgLoss)
         TrainAccuracy.append(Correct)
@@ -107,7 +111,7 @@ def Run(finetune:bool, batchsize:int, epochs:int):
             with torch.no_grad():
                 Loss = Model.FeedForward(X, y)
                 Correct += float(torch.sum(Model.predict(X).to("cpu") == y))/ValTotal
-            AvgLoss += float(Loss)/len(ValSet)
+            AvgLoss += float(Loss)/ValTotal
         ValAccuracy.append(Correct)
         ValLosses.append(AvgLoss)
         print(f"Val Loss: {AvgLoss}, Val Acc: {ValAccuracy[-1]}")
@@ -148,8 +152,8 @@ def Run(finetune:bool, batchsize:int, epochs:int):
 
 
 def main():
-    Run(False, 100, epochs=40)
-    Run(True, 100, epochs=40)
+    Run(False, 20, epochs=15)
+    # Run(True, 100, epochs=15)
 
 if __name__ == "__main__":
     import os
