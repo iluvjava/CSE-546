@@ -37,13 +37,13 @@ CIFAR_TEST = datasets.CIFAR10(root="./data",
                              train=True,
                              download=True,
                              transform=TRANSFORMS["val"])
-CIFAR_TRAIN, CIFAR_VAL = \
-     torch.utils.data.random_split(CIFAR_TRAIN,
-                                   [45000, 50000 - 45000])
-# CIFAR_TRAIN, CIFAR_VAL = torch.utils.data.Subset(CIFAR_TRAIN,
-#                                                  range(0, 5000)),\
-#                          torch.utils.data.Subset(CIFAR_TRAIN,
-#                                                  range(5000, 6000))
+# CIFAR_TRAIN, CIFAR_VAL = \
+#      torch.utils.data.random_split(CIFAR_TRAIN,
+#                                    [45000, 50000 - 45000])
+CIFAR_TRAIN, CIFAR_VAL = torch.utils.data.Subset(CIFAR_TRAIN,
+                                                 range(0, 10000)),\
+                         torch.utils.data.Subset(CIFAR_TRAIN,
+                                                 range(10000, 10000 + 1000))
 CLASSES = \
     ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
 
@@ -125,7 +125,7 @@ class BestModelRegister:
         from pathlib import Path
         Path("./a6bestmodel").mkdir(parents=True, exist_ok=True)
         ModelTypeMap = {1: "Logistic", 2: "Single Hidden", 3:"CNN"}
-        TheLegends = [9, 1, 2, 3, 4, 5, 6, 7, 8]
+        TheLegends = [1, 2, 3, 4, 5, 6, 7, 8, 9]
         TopList = this.Top9AccList()
         # Plot the training acc
         for _, V in TopList.items():
@@ -156,15 +156,15 @@ class BestModelRegister:
         # write the results
         with open(f"./a6bestmodel/top9A6 {ModelTypeMap[this.ModelType]}.txt", "w+") as f:
             if this.ModelType == 1:
-                f.write(f"BatchSize, Learning_Rate\n")
+                f.write(f"max_val_acc, BatchSize, Learning_Rate\n")
                 for K, _ in TopList.items():
                     Params = this.BestAccToParams[K]
-                    f.write(f"{Params[0]}, {Params[1]}\n")
+                    f.write(f"{K}, {Params[0]}, {Params[1]}\n")
             elif this.ModelType == 2:
-                f.write(f"BatchSize, Learning_Rate, Hidden_Layer_width\n")
+                f.write(f"max_val_acc, BatchSize, Learning_Rate, Hidden_Layer_width\n")
                 for K, _ in TopList.items():
                     Params = this.BestAccToParams[K]
-                    f.write(f"{Params[0]}, {Params[1]}, {Params[2]}\n")
+                    f.write(f"{K}, {Params[0]}, {Params[1]}, {Params[2]}\n")
             else:
                 assert False, "Unrecognized type, or not yet implemented"
 
@@ -286,6 +286,8 @@ class ModelC(torch.nn.Module):
     def __init__(this):
         super().__init__()
 
+
+
     def FeedForward(this):
         pass
 
@@ -295,7 +297,8 @@ def main():
         ModelRegister = BestModelRegister()
         TheFunc = ModelA.GetHyperTuneFunc(20, True, ModelRegister)
         result = shgo(TheFunc,
-             [(20, 500), (1e-6, 0.1)], options={"maxev":10, "ftol": 1e-2, "maxfev": 3})
+             [(20, 500), (1e-6, 0.1)],
+             options={"maxev":10, "ftol": 1e-2, "maxfev": 3})
         print(result)
         print(ModelRegister.Top9AccList())
         ModelRegister.ProducePlotPrintResult()
@@ -304,10 +307,14 @@ def main():
         ModelRegister = BestModelRegister()
         TheFunc = ModelB.GetHyperTuneFunc(20, True, ModelRegister)
         result = shgo(TheFunc,
-                      [(20, 10000), (1e-6, 0.1), (50, 5000)], options={"maxev": 20, "ftol": 1e-2, "maxfev": 3})
+                      [(20, 10000), (1e-4, 0.1), (50, 5000)],
+                      options={"maxev": 20, "ftol": 1e-2, "maxfev": 5})
         print(result)
         print(ModelRegister.Top9AccList())
         ModelRegister.ProducePlotPrintResult()
+
+    def TuneModel3():
+        pass
     TuneModel2()
     TuneModel1()
     # TuneModel1()
