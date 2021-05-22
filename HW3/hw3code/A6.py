@@ -27,7 +27,8 @@ TRANSFORMS = {
 }
 
 DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-# DEVICE = "cpu"
+
+#DEVICE = "cpu"
 CIFAR_TRAIN = datasets.CIFAR10(root="./data",
                              train=True,
                              download=True,
@@ -36,13 +37,13 @@ CIFAR_TEST = datasets.CIFAR10(root="./data",
                              train=True,
                              download=True,
                              transform=TRANSFORMS["val"])
-# CIFAR_TRAIN, CIFAR_VAL = \
-#      torch.utils.data.random_split(CIFAR_TRAIN,
-#                                    [45000, 50000 - 45000])
-CIFAR_TRAIN, CIFAR_VAL = torch.utils.data.Subset(CIFAR_TRAIN,
-                                                 range(0, 5000)),\
-                         torch.utils.data.Subset(CIFAR_TRAIN,
-                                                 range(1000, 2000))
+CIFAR_TRAIN, CIFAR_VAL = \
+     torch.utils.data.random_split(CIFAR_TRAIN,
+                                   [45000, 50000 - 45000])
+# CIFAR_TRAIN, CIFAR_VAL = torch.utils.data.Subset(CIFAR_TRAIN,
+#                                                  range(0, 5000)),\
+#                          torch.utils.data.Subset(CIFAR_TRAIN,
+#                                                  range(5000, 6000))
 CLASSES = \
     ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
 
@@ -294,23 +295,26 @@ def main():
         ModelRegister = BestModelRegister()
         TheFunc = ModelA.GetHyperTuneFunc(20, True, ModelRegister)
         result = shgo(TheFunc,
-             [(20, 500), (1e-4, 0.01)], options={"maxev":10, "ftol": 1e-2, "maxfev": 3})
+             [(20, 500), (1e-6, 0.1)], options={"maxev":10, "ftol": 1e-2, "maxfev": 3})
         print(result)
         print(ModelRegister.Top9AccList())
         ModelRegister.ProducePlotPrintResult()
 
     def TuneModel2():
         ModelRegister = BestModelRegister()
-        TheFunc = ModelB.GetHyperTuneFunc(15, True, ModelRegister)
+        TheFunc = ModelB.GetHyperTuneFunc(20, True, ModelRegister)
         result = shgo(TheFunc,
-                      [(100, 1000), (1e-5, 0.01), (50, 800)], options={"maxev": 10, "ftol": 1e-2, "maxfev": 10})
+                      [(20, 10000), (1e-6, 0.1), (50, 5000)], options={"maxev": 20, "ftol": 1e-2, "maxfev": 3})
         print(result)
         print(ModelRegister.Top9AccList())
         ModelRegister.ProducePlotPrintResult()
     TuneModel2()
+    TuneModel1()
+    # TuneModel1()
 
 if __name__ == "__main__":
     import os
     print(f"curdir: {os.curdir} ")
     print(f"cwd: {os.getcwd()}")
+    print(f"Pytorch device: {DEVICE}")
     main()
