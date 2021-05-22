@@ -132,7 +132,7 @@ class BestModelRegister:
         plt.xlabel("Epochs")
         plt.ylabel("Their Train acuracy")
         plt.title(f"Model: {ModelTypeMap[this.ModelType]} Top 9 ranked by peak val acc")
-        plt.savefig(f"A6-{ModelTypeMap[this.ModelType]}-val-acc.png")
+        plt.savefig(f"A6-{ModelTypeMap[this.ModelType]}-train-acc.png")
         plt.legend([f"top {R}" for R in TheLegends])
         plt.show()
         # Plot the validation acc
