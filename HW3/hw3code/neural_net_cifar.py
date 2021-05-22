@@ -39,8 +39,7 @@ CIFAR_TEST = datasets.CIFAR10(root="./data",
                              transform=TRANSFORMS["val"])
 # CIFAR_TRAIN, CIFAR_VAL = \
 #      torch.utils.data.random_split(CIFAR_TRAIN,
-#                                    [45000, 50000 - 45000],
-#                                    transforms=TRANSFORMS["train"])
+#                                    [45000, 50000 - 45000])
 CIFAR_TRAIN, CIFAR_VAL = torch.utils.data.Subset(CIFAR_TRAIN,
                                                  range(0, 5000, 2)),\
                          torch.utils.data.Subset(CIFAR_TRAIN,
