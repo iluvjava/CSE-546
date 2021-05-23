@@ -169,6 +169,7 @@ class BestModelRegister:
         with open(f"./a6bestmodel/top9A6-{Ts}" +
                   f"-{ModelTypeMap[this.ModelType]}.txt", "w+") as f:
             if this.ModelType == 1:
+
                 f.write(f"max_val_acc, BatchSize, Learning_Rate\n")
                 for K, _ in TopList.items():
                     Params = this.BestAccToParams[K]
@@ -178,6 +179,11 @@ class BestModelRegister:
                 for K, _ in TopList.items():
                     Params = this.BestAccToParams[K]
                     f.write(f"{K}, {Params[0]}, {Params[1]}, {Params[2]}\n")
+            elif this.ModelType == 3:
+                f.write(f"max_val_acc, BatchSize, Learning_Rate, Num_Channels, Conv_Kernel, MaxPool_Kernel\n")
+                for K, _ in TopList.items():
+                    Params = this.BestAccToParams[K]
+                    f.write(f"{K}, {Params[0]}, {Params[1]}, {Params[2]}, {Params[3]}, {Params[4]}\n")
             else:
                 assert False, "Unrecognized type, or not yet implemented"
 
@@ -308,14 +314,62 @@ class ModelC(torch.nn.Module):
         """
         super().__init__()
         this.Con = nn.Conv2d(3, c, k1)
-        this.Mp = nn.MaxPool2d(k2)
+        this.Mp = nn.MaxPool2d(k2, k2)
+        Width = int((32 - k1 + 1)/k2)
+        this.L1 = nn.Linear(c*Width**2, 10)
+
+    def FeedForward(this, X, y):
+        return F.cross_entropy(this(X), y)
+
+    def forward(this, X):
+        x = this.Con(X)
+        x = F.relu(x)
+        x = this.Mp(x)
+        x = torch.flatten(x, 1)
+        return this.L1(x)
+
+    def predict(this, X):
+        return torch.argmax(this(X), axis=1)
 
 
+    @staticmethod
+    def GetHyperTuneFunc(Epochs, verbose, modelRegister):
+        modelRegister.ModelType = 3
+        def HyperTuneFunc(x, mem={}):
+            """
+            This function is passed to SHGO for optimization.
+            :param x:
+            :param mem:
+            :return:
+            """
+            BatchSize, Lr, Channels, Kernel1, Kernel2 = \
+                int(x[0]), x[1], int(x[2]), int(x[3]), int(x[4])
+            if (BatchSize, Lr, Channels, Kernel1, Kernel2) in mem:
+                return mem[BatchSize, Lr, Channels, Kernel1, Kernel2]
+            Model = ModelC(Channels, Kernel1, Kernel2)
+            if verbose: print(f"ModelC, Bs: {BatchSize}, lr: {Lr}," +
+                              f" Channels: {Channels}, K1: {Kernel1}, K2: {Kernel2}")
+            Optimizer = optim.Adam(Model.parameters(), lr=Lr)
+            T, V = GetTrainValDataLoader(BatchSize)
+            BestAcc = -float("inf")
+            TrainAcc, ValAcc = [], []
+            for II in tqdm(range(Epochs)):
+                Acc = BatchThisModel(Model, T, optimizer=Optimizer)
+                TrainAcc.append(Acc)
+                Acc = BatchThisModel(Model, V)
+                ValAcc.append(Acc)
+                if Acc > BestAcc:
+                    BestAcc = Acc
+            modelRegister.HyperParameterAccList[BatchSize, Lr, Channels, Kernel1, Kernel2] = (TrainAcc, ValAcc)
+            modelRegister.BestAccToParams[BestAcc] = (BatchSize, Lr, Channels, Kernel1, Kernel2)
+            if Acc > modelRegister.BestAcc:
+                modelRegister.BestAcc = Acc
+                modelRegister.BestModel = Model
+                if verbose: print(f"Best Acc Update: {Acc}")
+            mem[BatchSize, Lr, Channels, Kernel1, Kernel2] = 1 - Acc  # Memeorization.
+            return 1 - Acc
 
-
-
-    def FeedForward(this):
-        pass
+        return HyperTuneFunc
 
 
 def main():
@@ -341,7 +395,7 @@ def main():
         ModelRegister = BestModelRegister()
         TheFunc = ModelB.GetHyperTuneFunc(20, True, ModelRegister)
         result = shgo(TheFunc,
-                      [(100, 100), (1e-6, 0.001), (20, 3000)],
+                      [(100, 100), (1e-6, 0.01), (20, 3000)],
                       options={"maxev": 20, "ftol": 1e-2, "maxfev": 10})
         print(result)
         print(ModelRegister.Top9AccList())
@@ -354,10 +408,24 @@ def main():
             f.write(str(Acc))
 
     def TuneModel3():
+        ModelRegister = BestModelRegister()
+        TheFunc = ModelC.GetHyperTuneFunc(20, True, ModelRegister)
+        result = shgo(TheFunc,
+                      [(100, 100), (1e-6, 0.01), (10, 200), (2, 5), (2, 4)],
+                      options={"maxev": 20, "ftol": 1e-2, "maxfev": 10})
+        print(result)
+        print(ModelRegister.Top9AccList())
+        ModelRegister.ProducePlotPrintResult()
+        TestSet = torch.utils.data.DataLoader(CIFAR_VAL,
+                                              batch_size=2000)
+        Acc = BatchThisModel(ModelRegister.BestModel, TestSet,
+                             dataTransform=lambda x: x.view(x.shape[0], -1))
+        with open(f"./a6bestmodel/{GetTS()}-best-model-hidden-test.txt", "w+") as f:
+            f.write(str(Acc))
         pass
     #TuneModel2()
     # TuneModel1()
-    # TuneModel1()
+    TuneModel3()
 
 if __name__ == "__main__":
     import os
