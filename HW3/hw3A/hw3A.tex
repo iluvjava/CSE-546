@@ -34,7 +34,9 @@
     \subsection*{A.1.d}
         Flase, the what gives non linear decision boundary is the number of layers and the number of neurons in the layers, both ReLU and the Sigmoid functions is using linear decision boundary under the hood, \textbf{it's a lot of linear decision bounary combined together}. 
     \subsection*{A.1.e}
-        
+        False if we use dynamic programming when doing backprop, else it's True. 
+        \\
+        Backward pass requires it goes for the Loss Layer to each layer to compute the gradient, but when computing the gradient of a $w_{i, j}^{(k)}$ at the $k$ th layer, because we already did a forward pass, therefore all the previous value for $w_{i, j}^{(k)}$ (where $0\le k< N$) were in the memory, so are the $a^{(k)}$ ($1\le k N$) . When doing backprop, we would need all the weight matrix at layer $N, N-1, N-2 \cdots k - 2$, and then we will need one row of $w_{i, j}^{(k - 1)}$, and $a_i^{(k-1)}$ to compute it. But all the previous big matrices are stored in the memory, and when we did the backward on $k-1$ layer therefore we already have all partials for $k-1, k - 2... N$. So using dynamic programming, we can save a lot of complexity, making it the same as forward pass. 
 
 \section*{A.2: Kernels And Bootstrap}
     Give na vector whose $n$ th components paramterized by $n$ is given by: 
@@ -786,9 +788,745 @@ if __name__ == "__main__":
         I would say deeper, larger network is better, and the more parameters the better, if it overfits, we just regularize it. So the second network is better, it manages to achieve accuracy close to the first network all with much less parameters.  
     
 \section*{A.5: Using Pretrained Networks and Transfer Learning}
+    \textbf{NOTE}: This HW is done with collaborations with another students: Zihao Zhou. 
+        \\
+        The type of collaboration is: I view his code, and I extract out some of of his stuff in his code that I don't have and made it my own. The stuff he has and I don't are: 
+        \begin{enumerate}
+            \item[1.] No grad block.
+            \item[2.] Data Proprocessing.
+            \item[3.] A set of hyperparameters that I can just copy and know it will work.  
+            \item[4.] Freeze state\_dict of the model and recover it. 
+            \item[5.] The whole idea of storing the best model during training.  
+        \end{enumerate}
+        \textbf{NOTE}: Version 1.0.1, later version will keep comping, once they are completed. 
+        \\
+        \textbf{NOTE}: In this version, I divided the loss by the number of batches instead of samples, so they are off by a constant factor. 
+        \\
+        \textbf{NOTE}: There will be some difference between the code I uploaded into gradescope, and I had several versions on my own google collab, \href{https://colab.research.google.com/drive/1cCKCyvZBUQsXtfZfqKFic64mZy4l99be?usp=sharing}{link}. Last modified: May 21st. The code presented below is one of the instances, the code copied and uploaded to gradescope is code underdevelopment. 
+    \subsubsection*{A.5.code}
+        \begin{lstlisting}
+# This is for CSE SPRING 2021 hw3, A5
+# Name: Hongda Li, collaborated with Zihao Zhou
+
+import torch
+import torchvision
+datasets = torchvision.datasets
+transforms = torchvision.transforms
+F = torch.nn.functional
+nn = torch.nn
+optim = torch.optim
+
+import matplotlib.pyplot as plt
+import copy
+
+TRANSFORMS  = {
+    'train': transforms.Compose([
+        transforms.RandomResizedCrop(224),
+        transforms.RandomHorizontalFlip(),
+        transforms.ToTensor(),
+        transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+    ]),
+    'test': transforms.Compose([
+        transforms.Resize(256),
+        transforms.CenterCrop(224),
+        transforms.ToTensor(),
+        transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+    ]),
+}
+
+DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+# DEVICE = "cpu"
+CIFAR_TRAIN = datasets.CIFAR10(root="./data",
+                                train=True,
+                                download=True,
+                                transform=TRANSFORMS["train"])
+CIFAR_TEST = datasets.CIFAR10(root="./data",
+                                train=True,
+                                download=True,
+                                transform=TRANSFORMS["test"])
+CIFAR_TRAIN, CIFAR_VAL = \
+        torch.utils.data.random_split(CIFAR_TRAIN, [45000, 50000 - 45000])
+# CIFAR_TRAIN, CIFAR_VAL = torch.utils.data.Subset(CIFAR_TRAIN, range(0, 5000, 3)),\
+#                          torch.utils.data.Subset(CIFAR_TRAIN, range(1, 5000, 3))
+CLASSES = \
+    ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
+
+
+class MyCifar:
+
+    def __init__(this, finetune=False):
+        Model = torchvision.models.alexnet(pretrained=True)
+        if not finetune:
+            for Param in Model.parameters():
+                Param.require_grad = False
+        Model.classifier[-1] = nn.Linear(4096, 10)
+        Model.to(DEVICE)
+        this.Model = Model
+        this.FineTune = finetune
+
+    def __call__(this, *args, **kwargs):
+        return this.Model(*args, **kwargs)
+
+    def FeedForward(this, X, y):
+        X, y = X.to(DEVICE), y.to(DEVICE)
+        return F.cross_entropy(this(X), y)
+
+    def predict(this, X):
+        X = X.to(DEVICE)
+        return torch.argmax(this(X), axis=1)
+
+    @property
+    def Parameters(this):
+        if this.FineTune:
+            return this.Model.parameters()
+        return this.Model.classifier[-1].parameters()
+
+
+def Run(finetune:bool, batchsize:int, epochs:int):
+    Model = MyCifar(finetune=finetune)
+    BatchSize = batchsize
+    TrainSet = torch.utils.data.DataLoader(CIFAR_TRAIN,
+                                            batch_size=BatchSize)
+    TrainTotal = len(TrainSet)*BatchSize
+    ValSet = torch.utils.data.DataLoader(CIFAR_VAL,
+                                            batch_size=BatchSize)
+    TestSet = torch.utils.data.DataLoader(CIFAR_TEST, batch_size=BatchSize)
+    ValTotal = len(ValSet)*BatchSize
+    Optimizer = optim.RMSprop(Model.Parameters, lr=0.0001)
+    Epochs = epochs
+    TrainLosses, ValLosses, TrainAccuracy, ValAccuracy = [], [], [], []
+    BestModel, BestAccuracy = None, 0
+    for II in range(Epochs):
+        AvgLoss = Correct = 0
+        for X, y in TrainSet:
+            Optimizer.zero_grad()
+            Loss = Model.FeedForward(X, y)
+            Loss.backward()
+            Optimizer.step()
+            with torch.no_grad():
+                AvgLoss += float(Model.FeedForward(X, y)) / len(TrainSet)
+                Correct += float(torch.sum(Model.predict(X).to("cpu") == y))/TrainTotal
+        TrainLosses.append(AvgLoss)
+        TrainAccuracy.append(Correct)
+        print(f"Epoch: {II}, Train Loss: {AvgLoss}, Train Acc: {TrainAccuracy[-1]}", end="; ")
+        Correct = AvgLoss = 0
+        for X, y in ValSet:
+            with torch.no_grad():
+                Loss = Model.FeedForward(X, y)
+                Correct += float(torch.sum(Model.predict(X).to("cpu") == y))/ValTotal
+            AvgLoss += float(Loss)/len(ValSet)
+        ValAccuracy.append(Correct)
+        ValLosses.append(AvgLoss)
+        print(f"Val Loss: {AvgLoss}, Val Acc: {ValAccuracy[-1]}")
+        if ValAccuracy[-1] > BestAccuracy:
+            BestAccuracy = ValAccuracy[-1]
+            BestModel = copy.deepcopy(Model.Model.state_dict())
+
+    # Plot train, val losses
+    plt.plot(TrainLosses)
+    plt.plot(ValLosses)
+    plt.legend(["Train Loss", "Val Loss"])
+    plt.title(f"Train and Validation Loss, finetune: {finetune}")
+    plt.xlabel("Epoch")
+    plt.savefig(f"A5a-train-val-loss-{finetune}.png")
+    plt.show()
+
+    # Plot train val acc
+    plt.plot(TrainAccuracy)
+    plt.plot(ValAccuracy)
+    plt.legend(["Train Acc", "Val Acc"])
+    plt.title(f"Train and Validation Accuracy, finetune: {finetune}")
+    plt.xlabel("Epoch")
+    plt.savefig(f"A5a-train-val-acc-{finetune}.png")
+    plt.show()
+
+    # Test Accuracy
+    TestAcc = 0
+    Model = MyCifar()
+    Model.Model.load_state_dict(BestModel)
+    Model.Model.eval()
+    for X, y in TestSet:
+        with torch.no_grad():
+            TestAcc += torch.sum(Model.predict(X).to("cpu") == y)/len(CIFAR_TEST)
+    print(f"TestAcc: {TestAcc}")
+    with open("a5-test-acc.txt", "w+") as f:
+        f.write(str(TestAcc))
+    return Model
+
+
+def main():
+    Run(False, 100, epochs=20)
+    Run(True, 100, epochs=20)
+
+if __name__ == "__main__":
+    import os
+    print(f"current dir:{os.curdir}")
+    print(f"cwd: {os.getcwd()}")
+    Model = main()
+        \end{lstlisting}
     
+    \subsubsection*{A.5.a}
+        The final test error is: $0.8136000633239746$. 
+        \begin{center}
+            \includegraphics[width=12cm]{a5plots/A5a-train-val-loss-False1.png}
+            \includegraphics[width=12cm]{a5plots/A5a-train-val-acc-False1.png}
+        \end{center}
+        Hyper Parameters: 
+        \begin{enumerate}
+            \item[1.] BatchSize = 100
+            \item[2.] Learning Rate = 0.0001 
+        \end{enumerate}
+        Why test accuracy so high? Data Pre-processing and data augmentation? 
+    
+    \subsubsection*{A.5.b}
+        The final test error is: $0.9650202989578247$. 
+        \begin{center}
+            \includegraphics[width=12cm]{a5plots/A5a-train-val-loss-True1.png}
+            \includegraphics[width=12cm]{a5plots/A5a-train-val-acc-True1.png}
+        \end{center}
+        Why test accuracy so high? Data Pre-processing and data augmentation? 
+        \begin{enumerate}
+            \item[1.] BatchSize = 100
+            \item[2.] Learning Rate = 0.0001 
+        \end{enumerate}
+
 \section*{A.6: Image Classification on CIFAR-10}
-        
-    
+    \textbf{Notes}: 
+        I am unable to complete this part of the HW because I am not willingly to spend time on this HW with expense on my other classes and assignments, I am not using the late days because it comes with an opportunity cost. 
+        \\
+        Here is a list of things I did for this part: 
+        \begin{enumerate}
+            \item[$\bullet$] Usage of SHGO algorithm for optimizing the model accuracy by tunning the hyperparameters. SHGO is provided by scipy for global constrained blackbox optimization. 
+            \item[$\bullet$] A whole automated process for hyper tuning and model selection is deployed. 
+            \item[$\bullet$] Top 9 models with maximum cross validations accuracy are received and visualized. 
+            \item[$\bullet$] I automated the whole process of model selections from hypertuning, and the computational results are saved.  
+            \item[$\bullet$] \textbf{Batchsize is not involved as a hyperparameter} for (b), (c) because there is this weird relation where, higher learning rate and larger batchsizes gives similar accuracy as smaller training rate and smaller batchsizes, therefore, I fixed the batch size and only focuses on learning rate. These 2 quantities are interacting with each other. Interesting. Therefore I fixed the batchsize to be 100 for all model, for all training in (b), (c) to save some time. 
+            \item[$\bullet$] The accuracy of the first epochs is measured after the gradient descend step. This is the case for all epochs. That is why all the accuracy started somehwere above 
+        \end{enumerate}
+        This is my code implementation that produces everything: 
+        \\
+        File name: ``A6.py''
+        \begin{lstlisting}[language=python]
+# name: Hongda Li
+# This is for A6 HW3 CSE 546 SPRING 2021
+# Don't copy my code it has my style in it.
+
+
+import torch
+import torchvision
+datasets = torchvision.datasets
+transforms = torchvision.transforms
+F = torch.nn.functional
+nn = torch.nn
+optim = torch.optim
+sqrt = torch.sqrt
+from tqdm import tqdm
+
+from scipy.optimize import shgo
+import matplotlib.pyplot as plt
+import copy
+
+TRANSFORMS = {
+    'train': transforms.Compose([
+        transforms.ToTensor(),
+    ]),
+    'val': transforms.Compose([
+        transforms.ToTensor(),
+    ]),
+}
+
+DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+
+#DEVICE = "cpu"
+CIFAR_TRAIN = datasets.CIFAR10(root="./data",
+                                train=True,
+                                download=True,
+                                transform=TRANSFORMS["val"])
+CIFAR_TEST = datasets.CIFAR10(root="./data",
+                                train=True,
+                                download=True,
+                                transform=TRANSFORMS["val"])
+CIFAR_TRAIN, CIFAR_VAL = \
+        torch.utils.data.random_split(CIFAR_TRAIN,
+                                    [45000, 50000 - 45000])
+# CIFAR_TRAIN, CIFAR_VAL = torch.utils.data.Subset(CIFAR_TRAIN,
+#                                                  range(0, 10000)),\
+#                          torch.utils.data.Subset(CIFAR_TRAIN,
+#                                                  range(10000, 10000 + 1000))
+CLASSES = \
+    ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
+
+
+def BatchThisModel(theModel, theDataLoader, optimizer=None, dataTransform:callable=None):
+    """
+        Performs one epochs of training or inference, depending on whether
+        optimizer is None or not.
+    :param theModel:
+    :param theDataLoader:
+    :param optimizer:
+    :return:
+    """
+    theModel.to(DEVICE)
+    AvgLoss = 0
+    AvgAccuracy = 0
+    for X, y in theDataLoader:
+        if dataTransform:
+            X = dataTransform(X)
+        X, y= X.to(DEVICE), y.to(DEVICE)
+        if optimizer is not None: # GD
+            optimizer.zero_grad()
+            Loss = theModel.FeedForward(X, y)
+            AvgLoss += Loss.item()
+            Loss.backward()
+            optimizer.step()
+
+        else: # Inference
+            with torch.no_grad():
+                Loss = theModel.FeedForward(X, y)
+                AvgLoss += Loss.item()
+        with torch.no_grad():
+            AvgAccuracy +=\
+                float(torch.sum(theModel.predict(X) == y)/(len(theDataLoader)*len(y)))
+    return AvgAccuracy
+
+def GetTrainValDataLoader(bs):
+    TrainSet = torch.utils.data.DataLoader(CIFAR_TRAIN,
+                                            batch_size=bs)
+    ValSet = torch.utils.data.DataLoader(CIFAR_VAL,
+                                            batch_size=bs)
+    return TrainSet, ValSet
+
+def GetTS():
+    import time
+    Ts = time.strftime('%H-%M-%S-%b-%d-%Y')
+    return Ts
+
+
+
+class BestModelRegister:
+    """
+    Pass to the trainer and stores all the losses and data from the training process.
+    """
+    def __init__(this):
+        this.BestModel = None
+        this.ModelType = None
+        # Hyper parameters maps to Epochs Acc
+        this.HyperParameterAccList = {}
+        # Best Acc maps to best Params tuple
+        this.BestAccToParams = {}
+        # Absolute Best ACC from whatever agorithm run the hypertune.
+        this.BestAcc = 0
+
+    def save(this):
+        import time
+        from pathlib import Path
+        Path("./a6bestmodel").mkdir(parents=True, exist_ok=True)
+        torch.save(this.BestModel.state_dict(), f"./a6bestmodel/{time.strftime('%H-%M-%S-%b-%d-%Y')}")
+
+    def Top9AccList(this):
+        """
+            Get the hyper params with top 10 accuracy.
+        :return:
+        """
+        List = list(this.BestAccToParams.keys())
+        List.sort(reverse=True)
+        List = List[:min(9, len(List))]
+        Result = {}
+        for K in List:
+            Result[K] = this.HyperParameterAccList[this.BestAccToParams[K]]
+        return Result
+
+    def ProducePlotPrintResult(this):
+        from pathlib import Path
+        Path("./a6bestmodel").mkdir(parents=True, exist_ok=True)
+        import time
+        Ts = time.strftime('%H-%M-%S-%b-%d-%Y')
+
+        ModelTypeMap = {1: "Logistic", 2: "Single Hidden", 3:"CNN"}
+        TheLegends = [1, 2, 3, 4, 5, 6, 7, 8, 9]
+        TopList = this.Top9AccList()
+        # Plot the training acc
+        for _, V in TopList.items():
+            plt.plot(V[0])
+        plt.xlabel("Epochs")
+        plt.ylabel("Their Train acuracy")
+        plt.title(f"Model: {ModelTypeMap[this.ModelType]} Top 9 ranked by peak val acc")
+        plt.legend([f"top {R}" for R in TheLegends])
+        plt.savefig(f"./a6bestmodel/{Ts}-{ModelTypeMap[this.ModelType]}-train-acc.png")
+        plt.show()
+        # Plot the validation acc
+        for _, V in TopList.items():
+            plt.plot(V[1])
+        plt.xlabel("Epochs")
+        plt.ylabel("Their Val acuracy")
+        plt.title(f"Model: {ModelTypeMap[this.ModelType]} Top 9 ranked by peak val acc")
+        plt.legend([f"top {R}" for R in TheLegends])
+        plt.savefig(f"./a6bestmodel/{Ts}-{ModelTypeMap[this.ModelType]}-val-acc.png")
+        plt.show()
+        # Plot the top 1 model found:
+        plt.plot(TopList[max(TopList.keys())][0])
+        plt.plot(TopList[max(TopList.keys())][1])
+        plt.legend(["train", "val"])
+        plt.xlabel("epochs")
+        plt.ylabel("acc")
+        plt.title("Best model train val acc")
+        plt.savefig(f"./a6bestmodel/{Ts}-{ModelTypeMap[this.ModelType]}-best-acc.png")
+        plt.show()
+        # write the results
+
+
+        with open(f"./a6bestmodel/top9A6-{Ts}" +
+                    f"-{ModelTypeMap[this.ModelType]}.txt", "w+") as f:
+            if this.ModelType == 1:
+
+                f.write(f"max_val_acc, BatchSize, Learning_Rate\n")
+                for K, _ in TopList.items():
+                    Params = this.BestAccToParams[K]
+                    f.write(f"{K}, {Params[0]}, {Params[1]}\n")
+            elif this.ModelType == 2:
+                f.write(f"max_val_acc, BatchSize, Learning_Rate, Hidden_Layer_width\n")
+                for K, _ in TopList.items():
+                    Params = this.BestAccToParams[K]
+                    f.write(f"{K}, {Params[0]}, {Params[1]}, {Params[2]}\n")
+            elif this.ModelType == 3:
+                f.write(f"max_val_acc, BatchSize, Learning_Rate, Num_Channels, Conv_Kernel, MaxPool_Kernel\n")
+                for K, _ in TopList.items():
+                    Params = this.BestAccToParams[K]
+                    f.write(f"{K}, {Params[0]}, {Params[1]}, {Params[2]}, {Params[3]}, {Params[4]}\n")
+            else:
+                assert False, "Unrecognized type, or not yet implemented"
+
+
+
+
+class ModelA(nn.Module):
+    def __init__(this):
+        super().__init__()
+        this.Linear = nn.Linear(3*32**2, 10)
+
+    def FeedForward(this, X, y):
+        yhat = this(X)
+        return F.cross_entropy(yhat, y)
+
+    def forward(this, X):
+        x = this.Linear(X)
+        return x
+
+    def predict(this, X):
+        return torch.argmax(this(X), axis=1)
+
+    @staticmethod
+    def GetHyperTuneFunc(Epochs, verbose, modelRegister):
+        modelRegister.ModelType = 1
+        def flatten(x):
+            return x.view(x.shape[0], -1)
+        def HyperTuneFunc(x, mem={}):
+            """
+            This function is passed to SHGO for optimization.
+            :param x:
+            :param mem:
+            :return:
+            """
+            BatchSize, Lr = int(x[0]), x[1]
+            if (BatchSize, Lr) in mem:
+                return mem[BatchSize, Lr]
+            Model = ModelA()
+            if verbose: print(f"ModelA, Hypertune, Bs: {BatchSize}, lr: {Lr}")
+            Optimizer = optim.Adam(Model.parameters(), lr=Lr)
+            T, V = GetTrainValDataLoader(BatchSize)
+            BestAcc = -float("inf")
+            TrainAcc, ValAcc = [], []
+            for II in tqdm(range(Epochs)):
+                Acc = BatchThisModel(Model, T, optimizer=Optimizer, dataTransform=flatten)
+                TrainAcc.append(Acc)
+                Acc = BatchThisModel(Model, V, dataTransform=flatten)
+                ValAcc.append(Acc)
+                if Acc > BestAcc:
+                    BestAcc = Acc
+            modelRegister.HyperParameterAccList[BatchSize, Lr] = (TrainAcc, ValAcc)
+            modelRegister.BestAccToParams[BestAcc] = (BatchSize, Lr)
+            if Acc > modelRegister.BestAcc:
+                modelRegister.BestAcc = Acc
+                modelRegister.BestModel = Model
+                if verbose: print(f"Best Acc Update: {Acc}")
+            mem[BatchSize, Lr] = 1 - Acc # Memeorization.
+            return 1 - Acc
+        return HyperTuneFunc
+
+
+class ModelB(nn.Module):
+    def __init__(this, hiddenWidth):
+        super().__init__()
+        this.L1 = nn.Linear(3*32**2, hiddenWidth)
+
+    def FeedForward(this, X, y):
+        return F.cross_entropy(this(X), y)
+
+    def forward(this, X):
+        x = this.L1(X)
+        x = F.relu(x)
+        return x
+
+    def predict(this, X):
+        return torch.argmax(this(X), axis=1)
+
+    @staticmethod
+    def GetHyperTuneFunc(Epochs, verbose, modelRegister):
+        modelRegister.ModelType = 2
+        def flatten(x):
+            return x.view(x.shape[0], -1)
+        def HyperTuneFunc(x, mem={}):
+            """
+            This function is passed to SHGO for optimization.
+            :param x:
+            :param mem:
+            :return:
+            """
+            BatchSize, Lr, HiddenLayerWidth= int(x[0]), x[1], int(x[2])
+            if (BatchSize, Lr, HiddenLayerWidth) in mem:
+                return mem[BatchSize, Lr, HiddenLayerWidth]
+            Model = ModelB(HiddenLayerWidth)
+            if verbose: print(f"ModelB, Hypertune, Bs: {BatchSize}, lr: {Lr}, HLW: {HiddenLayerWidth}")
+            Optimizer = optim.Adam(Model.parameters(), lr=Lr)
+            T, V = GetTrainValDataLoader(BatchSize)
+            BestAcc = -float("inf")
+            TrainAcc, ValAcc = [], []
+            for II in tqdm(range(Epochs)):
+                Acc = BatchThisModel(Model, T, optimizer=Optimizer, dataTransform=flatten)
+                TrainAcc.append(Acc)
+                Acc = BatchThisModel(Model, V, dataTransform=flatten)
+                ValAcc.append(Acc)
+                if Acc > BestAcc:
+                    BestAcc = Acc
+            modelRegister.HyperParameterAccList[BatchSize, Lr, HiddenLayerWidth] = (TrainAcc, ValAcc)
+            modelRegister.BestAccToParams[BestAcc] = (BatchSize, Lr, HiddenLayerWidth)
+            if Acc > modelRegister.BestAcc:
+                modelRegister.BestAcc = Acc
+                modelRegister.BestModel = Model
+                if verbose: print(f"Best Acc Update: {Acc}")
+            mem[BatchSize, Lr, HiddenLayerWidth] = 1 - Acc  # Memeorization.
+            return 1 - Acc
+
+        return HyperTuneFunc
+
+
+class ModelC(torch.nn.Module):
+    def __init__(this, c, k1, k2):
+        """
+
+        :param c:
+            Chennel for conv2d
+        :param k1:
+            Kernel for conv2d
+        :param k2:
+            Kernel for max pool
+        """
+        super().__init__()
+        this.Con = nn.Conv2d(3, c, k1)
+        this.Mp = nn.MaxPool2d(k2, k2)
+        Width = int((32 - k1 + 1)/k2)
+        this.L1 = nn.Linear(c*Width**2, 10)
+
+    def FeedForward(this, X, y):
+        return F.cross_entropy(this(X), y)
+
+    def forward(this, X):
+        x = this.Con(X)
+        x = F.relu(x)
+        x = this.Mp(x)
+        x = torch.flatten(x, 1)
+        return this.L1(x)
+
+    def predict(this, X):
+        return torch.argmax(this(X), axis=1)
+
+
+    @staticmethod
+    def GetHyperTuneFunc(Epochs, verbose, modelRegister):
+        modelRegister.ModelType = 3
+        def HyperTuneFunc(x, mem={}):
+            """
+            This function is passed to SHGO for optimization.
+            :param x:
+            :param mem:
+            :return:
+            """
+            BatchSize, Lr, Channels, Kernel1, Kernel2 = \
+                int(x[0]), x[1], int(x[2]), int(x[3]), int(x[4])
+            if (BatchSize, Lr, Channels, Kernel1, Kernel2) in mem:
+                return mem[BatchSize, Lr, Channels, Kernel1, Kernel2]
+            Model = ModelC(Channels, Kernel1, Kernel2)
+            if verbose: print(f"ModelC, Bs: {BatchSize}, lr: {Lr}," +
+                                f" Channels: {Channels}, K1: {Kernel1}, K2: {Kernel2}")
+            Optimizer = optim.Adam(Model.parameters(), lr=Lr)
+            T, V = GetTrainValDataLoader(BatchSize)
+            BestAcc = -float("inf")
+            TrainAcc, ValAcc = [], []
+            for II in tqdm(range(Epochs)):
+                Acc = BatchThisModel(Model, T, optimizer=Optimizer)
+                TrainAcc.append(Acc)
+                Acc = BatchThisModel(Model, V)
+                ValAcc.append(Acc)
+                if Acc > BestAcc:
+                    BestAcc = Acc
+            modelRegister.HyperParameterAccList[BatchSize, Lr, Channels, Kernel1, Kernel2] \
+                = (TrainAcc, ValAcc)
+            modelRegister.BestAccToParams[BestAcc] = (BatchSize, Lr, Channels, Kernel1, Kernel2)
+            if Acc > modelRegister.BestAcc:
+                modelRegister.BestAcc = Acc
+                modelRegister.BestModel = Model
+                if verbose: print(f"Best Acc Update: {Acc}")
+            mem[BatchSize, Lr, Channels, Kernel1, Kernel2] = 1 - Acc  # Memeorization.
+            return 1 - Acc
+
+        return HyperTuneFunc
+
+
+def main():
+    def TuneModel1():
+        ModelRegister = BestModelRegister()
+        TheFunc = ModelA.GetHyperTuneFunc(20, True, ModelRegister)
+        result = shgo(TheFunc,
+                [(10, 500), (5e-6, 0.01)],
+                options={"maxev":50, "ftol": 1e-2, "maxfev": 10})
+        print(result)
+        print(ModelRegister.Top9AccList())
+        ModelRegister.ProducePlotPrintResult()
+        TestSet = torch.utils.data.DataLoader(CIFAR_VAL,
+                                            batch_size=2000)
+        Acc = BatchThisModel(ModelRegister.BestModel,
+                                TestSet,
+                                dataTransform=lambda x: x.view(x.shape[0], -1))
+        with open(f"./a6bestmodel/{GetTS()}-best-model-logistic-test.txt", "w+") as f:
+            f.write(str(Acc))
+
+
+    def TuneModel2():
+        ModelRegister = BestModelRegister()
+        TheFunc = ModelB.GetHyperTuneFunc(20, True, ModelRegister)
+        result = shgo(TheFunc,
+                        [(100, 100), (1e-6, 0.01), (20, 3000)],
+                        options={"maxev": 20, "ftol": 1e-2, "maxfev": 10})
+        print(result)
+        print(ModelRegister.Top9AccList())
+        ModelRegister.ProducePlotPrintResult()
+        TestSet = torch.utils.data.DataLoader(CIFAR_VAL,
+                                                batch_size=2000)
+        Acc = BatchThisModel(ModelRegister.BestModel, TestSet,
+                                dataTransform=lambda x: x.view(x.shape[0], -1))
+        with open(f"./a6bestmodel/{GetTS()}-best-model-hidden-test.txt", "w+") as f:
+            f.write(str(Acc))
+
+    def TuneModel3():
+        ModelRegister = BestModelRegister()
+        TheFunc = ModelC.GetHyperTuneFunc(20, True, ModelRegister)
+        result = shgo(TheFunc,
+                        [(100, 100), (1e-6, 0.01), (10, 200), (2, 5), (2, 4)],
+                        options={"maxev": 20, "ftol": 1e-2, "maxfev": 10})
+        print(result)
+        print(ModelRegister.Top9AccList())
+        ModelRegister.ProducePlotPrintResult()
+        TestSet = torch.utils.data.DataLoader(CIFAR_VAL,
+                                                batch_size=2000)
+        Acc = BatchThisModel(ModelRegister.BestModel, TestSet)
+        with open(f"./a6bestmodel/{GetTS()}-best-model-cnn-test.txt", "w+") as f:
+            f.write(str(Acc))
+        pass
+    # TuneModel2()
+    TuneModel1()
+    # TuneModel3()
+
+if __name__ == "__main__":
+    import os
+    print(f"curdir: {os.curdir} ")
+    print(f"cwd: {os.getcwd()}")
+    print(f"Pytorch device: {DEVICE}")
+    main()            
+        \end{lstlisting}
+    \subsubsection*{A.6.a}
+        This is some of the top ranking parameters for the logistic model: 
+        \begin{lstlisting}
+max_val_acc,       BatchSize, Learning_Rate
+0.41112577077001333, 132,       0.0025037649011611937
+0.4107545465230942,  132,       0.00250375
+0.4018739815801382,  377,       0.0025037649011611937
+0.39831049367785454, 377,       0.00250375
+0.39319999516010284, 500,       0.01
+0.38413627818226814, 132,       0.00750125
+0.3807273795828223,  255,       0.01
+0.3755999828426866,  10,        5e-06
+0.37519998475909233, 500,       0.0050025
+        \end{lstlisting}
+        And this is the performance of these model for all epochs, they are ranked by maximal achieved validations acurracy. 
+        \\
+        \begin{center}
+            \includegraphics[width=12cm]{a6plots/20-37-33-May-22-2021-Logistic-train-acc.png}
+            \includegraphics[width=12cm]{a6plots/20-37-33-May-22-2021-Logistic-val-acc.png}
+        \end{center}
+        And this is the best model's performance on the training set over all training and validtion accuracy. 
+        \begin{center}
+            \includegraphics[]{a6plots/20-37-33-May-22-2021-Logistic-best-acc.png}
+        \end{center}
+        The accuracy of the best model on the test set is: $0.41099999845027924$
+        \\
+        Used optimizer: Adam. 
+        \\
+        Momentum: Didn't set. 
+    \subsubsection*{A.7.b}
+        And this is a list of hyperparameters for the top ranking Hidden Layer model: 
+        \begin{lstlisting}
+max_val_acc,     BatchSize, Learning_Rate,    Hidden_Layer_width
+0.3471999899484217,  100, 0.0025007500000000004, 765
+0.3235999927856028,  100, 0.002500764901161194,  765
+0.32199999084696174, 100, 0.0025007500000000004, 2255
+0.3065999918617308,  100, 0.007500250000000001,  765
+0.305199992377311,   100, 0.01,                  3000
+0.30419999407604337, 100, 0.002500764901161194,  2255
+0.2867999942973256,  100, 1e-06,                 20
+0.2729999946895987,  100, 0.005000500000000001,  3000
+0.26119999354705215, 100, 0.005000500000000001,  1510
+        \end{lstlisting}
+        And this is their training behaviors for all of these top ranking parameters: 
+        \begin{center}
+            \includegraphics[width=12cm]{a6plots/20-16-57-May-22-2021-Single Hidden-train-acc.png}
+            \includegraphics[width=12cm]{a6plots/20-16-57-May-22-2021-Single Hidden-val-acc.png}
+        \end{center}
+        \begin{center}
+            \includegraphics[width=12cm]{a6plots/20-16-57-May-22-2021-Single Hidden-best-acc.png}
+        \end{center}
+        And the test set accuracy achieved by the best model is: $0.34299998730421066$
+        The optimizer is Adam and momentum is not set. 
+    \subsection{A.7.c}
+        These are some of the models with top ranking validations accuracy, and their parameters are: 
+        \begin{lstlisting}
+max_val_acc, BatchSize, Learning_Rate, Num_Channels, Conv_Kernel, MaxPool_Kernel
+0.6393999857828021,  100, 0.0050005149011611945, 105, 3, 3
+0.6305999839678407,  100, 0.005000500000000001,  105, 3, 3
+0.6079999813809991,  100, 0.01,                  200, 2, 4
+0.5557999834418297,  100, 0.01,                  10,  2, 4
+0.5539999827742577,  100, 0.01,                  200, 5, 4
+0.5407999884337187,  100, 0.01,                  200, 2, 2
+0.5085999895818532,  100, 0.01,                  10,  2, 2
+0.5043999869376421,  100, 0.01,                  10,  5, 4
+0.48519998881965876, 100, 0.01,                  200, 5, 2
+        \end{lstlisting}
+
+        And these are the training behaviors for these best ranking model: 
+        \begin{center}
+            \includegraphics[width=12cm]{a6plots/20-47-34-May-22-2021-CNN-train-acc.png}
+            \includegraphics[width=12cm]{a6plots/20-47-34-May-22-2021-CNN-val-acc.png}
+        \end{center}
+        \begin{center}
+            \includegraphics[width=12cm]{a6plots/20-47-34-May-22-2021-CNN-best-acc.png}
+        \end{center}
+        And the accuracy evaluated on the test set is: $0.6218333095312119$
+        \\
+        The optimizer is adam, and the momentum is not set. 
+    \section*{A.7.c}
+        Now, I don't have time to do this HW anymore, if you were excuse me, I need to make quizes because I am a TA, I also need to do c++ programming and fighting with PDEs in 3D using Sturmm Louville's Theory. Convlutional network is only part of life. 
+        \\
+        I also don't decide to put too much effort for this class at the expense of other class, because there is a diminishing return between the amount of effort and the actualy stuff I learn. 
+        \\
+        Yeah...
         
 \end{document}
