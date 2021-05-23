@@ -87,6 +87,12 @@ def GetTrainValDataLoader(bs):
                                          batch_size=bs)
     return TrainSet, ValSet
 
+def GetTS():
+    import time
+    Ts = time.strftime('%H-%M-%S-%b-%d-%Y')
+    return Ts
+
+
 
 class BestModelRegister:
     """
@@ -124,6 +130,9 @@ class BestModelRegister:
     def ProducePlotPrintResult(this):
         from pathlib import Path
         Path("./a6bestmodel").mkdir(parents=True, exist_ok=True)
+        import time
+        Ts = time.strftime('%H-%M-%S-%b-%d-%Y')
+
         ModelTypeMap = {1: "Logistic", 2: "Single Hidden", 3:"CNN"}
         TheLegends = [1, 2, 3, 4, 5, 6, 7, 8, 9]
         TopList = this.Top9AccList()
@@ -133,8 +142,8 @@ class BestModelRegister:
         plt.xlabel("Epochs")
         plt.ylabel("Their Train acuracy")
         plt.title(f"Model: {ModelTypeMap[this.ModelType]} Top 9 ranked by peak val acc")
-        plt.savefig(f"A6-{ModelTypeMap[this.ModelType]}-train-acc.png")
         plt.legend([f"top {R}" for R in TheLegends])
+        plt.savefig(f"./a6bestmodel/{Ts}-{ModelTypeMap[this.ModelType]}-train-acc.png")
         plt.show()
         # Plot the validation acc
         for _, V in TopList.items():
@@ -142,19 +151,23 @@ class BestModelRegister:
         plt.xlabel("Epochs")
         plt.ylabel("Their Val acuracy")
         plt.title(f"Model: {ModelTypeMap[this.ModelType]} Top 9 ranked by peak val acc")
-        plt.savefig(f"A6-{ModelTypeMap[this.ModelType]}-val-acc.png")
         plt.legend([f"top {R}" for R in TheLegends])
+        plt.savefig(f"./a6bestmodel/{Ts}-{ModelTypeMap[this.ModelType]}-val-acc.png")
         plt.show()
         # Plot the top 1 model found:
-        plt.plot(V[0])
-        plt.plot(V[1])
+        plt.plot(TopList[max(TopList.keys())][0])
+        plt.plot(TopList[max(TopList.keys())][1])
         plt.legend(["train", "val"])
         plt.xlabel("epochs")
         plt.ylabel("acc")
-        plt.savefig(f"A6-{ModelTypeMap[this.ModelType]}-best-acc.png")
+        plt.title("Best model train val acc")
+        plt.savefig(f"./a6bestmodel/{Ts}-{ModelTypeMap[this.ModelType]}-best-acc.png")
         plt.show()
         # write the results
-        with open(f"./a6bestmodel/top9A6 {ModelTypeMap[this.ModelType]}.txt", "w+") as f:
+
+
+        with open(f"./a6bestmodel/top9A6-{Ts}" +
+                  f"-{ModelTypeMap[this.ModelType]}.txt", "w+") as f:
             if this.ModelType == 1:
                 f.write(f"max_val_acc, BatchSize, Learning_Rate\n")
                 for K, _ in TopList.items():
@@ -276,15 +289,28 @@ class ModelB(nn.Module):
                 modelRegister.BestAcc = Acc
                 modelRegister.BestModel = Model
                 if verbose: print(f"Best Acc Update: {Acc}")
-            mem[BatchSize, Lr] = 1 - Acc  # Memeorization.
+            mem[BatchSize, Lr, HiddenLayerWidth] = 1 - Acc  # Memeorization.
             return 1 - Acc
 
         return HyperTuneFunc
 
 
 class ModelC(torch.nn.Module):
-    def __init__(this):
+    def __init__(this, c, k1, k2):
+        """
+
+        :param c:
+            Chennel for conv2d
+        :param k1:
+            Kernel for conv2d
+        :param k2:
+            Kernel for max pool
+        """
         super().__init__()
+        this.Con = nn.Conv2d(3, c, k1)
+        this.Mp = nn.MaxPool2d(k2)
+
+
 
 
 
@@ -297,26 +323,40 @@ def main():
         ModelRegister = BestModelRegister()
         TheFunc = ModelA.GetHyperTuneFunc(20, True, ModelRegister)
         result = shgo(TheFunc,
-             [(20, 500), (1e-6, 0.1)],
-             options={"maxev":10, "ftol": 1e-2, "maxfev": 3})
+             [(100, 100), (5e-6, 0.01)],
+             options={"maxev":50, "ftol": 1e-2, "maxfev": 10})
         print(result)
         print(ModelRegister.Top9AccList())
         ModelRegister.ProducePlotPrintResult()
+        TestSet = torch.utils.data.DataLoader(CIFAR_VAL,
+                                         batch_size=2000)
+        Acc = BatchThisModel(ModelRegister.BestModel,
+                             TestSet,
+                             dataTransform=lambda x: x.view(x.shape[0], -1))
+        with open(f"./a6bestmodel/{GetTS()}-best-model-logistic-test.txt", "w+") as f:
+            f.write(str(Acc))
+
 
     def TuneModel2():
         ModelRegister = BestModelRegister()
         TheFunc = ModelB.GetHyperTuneFunc(20, True, ModelRegister)
         result = shgo(TheFunc,
-                      [(20, 10000), (1e-4, 0.1), (50, 5000)],
-                      options={"maxev": 20, "ftol": 1e-2, "maxfev": 5})
+                      [(100, 100), (1e-6, 0.001), (20, 3000)],
+                      options={"maxev": 20, "ftol": 1e-2, "maxfev": 10})
         print(result)
         print(ModelRegister.Top9AccList())
         ModelRegister.ProducePlotPrintResult()
+        TestSet = torch.utils.data.DataLoader(CIFAR_VAL,
+                                              batch_size=2000)
+        Acc = BatchThisModel(ModelRegister.BestModel, TestSet,
+                             dataTransform=lambda x: x.view(x.shape[0], -1))
+        with open(f"./a6bestmodel/{GetTS()}-best-model-hidden-test.txt", "w+") as f:
+            f.write(str(Acc))
 
     def TuneModel3():
         pass
-    TuneModel2()
-    TuneModel1()
+    #TuneModel2()
+    # TuneModel1()
     # TuneModel1()
 
 if __name__ == "__main__":

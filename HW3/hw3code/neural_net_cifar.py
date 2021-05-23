@@ -37,13 +37,12 @@ CIFAR_TEST = datasets.CIFAR10(root="./data",
                              train=True,
                              download=True,
                              transform=TRANSFORMS["val"])
-# CIFAR_TRAIN, CIFAR_VAL = \
-#      torch.utils.data.random_split(CIFAR_TRAIN,
-#                                    [45000, 50000 - 45000])
-CIFAR_TRAIN, CIFAR_VAL = torch.utils.data.Subset(CIFAR_TRAIN,
-                                                 range(0, 5000, 2)),\
-                         torch.utils.data.Subset(CIFAR_TRAIN,
-                                                 range(1, 5000, 2))
+CIFAR_TRAIN, CIFAR_VAL = \
+     torch.utils.data.random_split(CIFAR_TRAIN, [45000, 50000 - 45000])
+# CIFAR_TRAIN, CIFAR_VAL = torch.utils.data.Subset(CIFAR_TRAIN,
+#                                                  range(0, 5000, 2)),\
+#                          torch.utils.data.Subset(CIFAR_TRAIN,
+#                                                  range(1, 5000, 2))
 CLASSES = \
     ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
 
@@ -151,8 +150,8 @@ def Run(finetune:bool, batchsize:int, epochs:int):
 
 
 def main():
-    Run(False, 20, epochs=15)
-    # Run(True, 100, epochs=15)
+    Run(False, 100, epochs=15)
+    Run(True, 100, epochs=15)
 
 if __name__ == "__main__":
     import os
