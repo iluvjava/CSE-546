@@ -360,7 +360,8 @@ class ModelC(torch.nn.Module):
                 ValAcc.append(Acc)
                 if Acc > BestAcc:
                     BestAcc = Acc
-            modelRegister.HyperParameterAccList[BatchSize, Lr, Channels, Kernel1, Kernel2] = (TrainAcc, ValAcc)
+            modelRegister.HyperParameterAccList[BatchSize, Lr, Channels, Kernel1, Kernel2] \
+                = (TrainAcc, ValAcc)
             modelRegister.BestAccToParams[BestAcc] = (BatchSize, Lr, Channels, Kernel1, Kernel2)
             if Acc > modelRegister.BestAcc:
                 modelRegister.BestAcc = Acc
@@ -418,8 +419,7 @@ def main():
         ModelRegister.ProducePlotPrintResult()
         TestSet = torch.utils.data.DataLoader(CIFAR_VAL,
                                               batch_size=2000)
-        Acc = BatchThisModel(ModelRegister.BestModel, TestSet,
-                             dataTransform=lambda x: x.view(x.shape[0], -1))
+        Acc = BatchThisModel(ModelRegister.BestModel, TestSet)
         with open(f"./a6bestmodel/{GetTS()}-best-model-hidden-test.txt", "w+") as f:
             f.write(str(Acc))
         pass
