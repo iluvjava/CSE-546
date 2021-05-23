@@ -37,13 +37,13 @@ CIFAR_TEST = datasets.CIFAR10(root="./data",
                              train=True,
                              download=True,
                              transform=TRANSFORMS["val"])
-# CIFAR_TRAIN, CIFAR_VAL = \
-#      torch.utils.data.random_split(CIFAR_TRAIN,
-#                                    [45000, 50000 - 45000])
-CIFAR_TRAIN, CIFAR_VAL = torch.utils.data.Subset(CIFAR_TRAIN,
-                                                 range(0, 10000)),\
-                         torch.utils.data.Subset(CIFAR_TRAIN,
-                                                 range(10000, 10000 + 1000))
+CIFAR_TRAIN, CIFAR_VAL = \
+     torch.utils.data.random_split(CIFAR_TRAIN,
+                                   [45000, 50000 - 45000])
+# CIFAR_TRAIN, CIFAR_VAL = torch.utils.data.Subset(CIFAR_TRAIN,
+#                                                  range(0, 10000)),\
+#                          torch.utils.data.Subset(CIFAR_TRAIN,
+#                                                  range(10000, 10000 + 1000))
 CLASSES = \
     ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
 
@@ -378,7 +378,7 @@ def main():
         ModelRegister = BestModelRegister()
         TheFunc = ModelA.GetHyperTuneFunc(20, True, ModelRegister)
         result = shgo(TheFunc,
-             [(100, 100), (5e-6, 0.01)],
+             [(10, 500), (5e-6, 0.01)],
              options={"maxev":50, "ftol": 1e-2, "maxfev": 10})
         print(result)
         print(ModelRegister.Top9AccList())
@@ -420,12 +420,12 @@ def main():
         TestSet = torch.utils.data.DataLoader(CIFAR_VAL,
                                               batch_size=2000)
         Acc = BatchThisModel(ModelRegister.BestModel, TestSet)
-        with open(f"./a6bestmodel/{GetTS()}-best-model-hidden-test.txt", "w+") as f:
+        with open(f"./a6bestmodel/{GetTS()}-best-model-cnn-test.txt", "w+") as f:
             f.write(str(Acc))
         pass
-    #TuneModel2()
-    # TuneModel1()
-    TuneModel3()
+    # TuneModel2()
+    TuneModel1()
+    # TuneModel3()
 
 if __name__ == "__main__":
     import os
