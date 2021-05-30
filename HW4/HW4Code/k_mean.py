@@ -64,8 +64,6 @@ class KMean:
         this._Distances = np.zeros((n, 1, k))
         this._ComputeAssignment()
 
-
-
     @property
     def Centroids(this):
         return np.transpose(this._C, (2, 1, 0))[..., 0].copy()
@@ -126,6 +124,7 @@ class KMean:
 
 
 def main():
+
     def BasicTest():
         Points1 = randn(1000, 2)
         Points2 = np.array([[3, 3]]) + randn(1000, 2)
