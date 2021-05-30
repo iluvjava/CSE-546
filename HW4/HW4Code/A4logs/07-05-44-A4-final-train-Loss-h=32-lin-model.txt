@@ -1,0 +1,1 @@
+Total Epochs: 30 Train Final MSE Loss: 0.17112773209810256
