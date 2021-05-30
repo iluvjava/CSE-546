@@ -20,7 +20,7 @@ TRANSFORM  = transforms.Compose([transforms.ToTensor(),
 TRAIN_SET = \
     datasets.MNIST('./data', download=True, train=True, transform=TRANSFORM)
 TEST_SET = \
-    datasets.MNIST('.data', download=False, train=True, transform=TRANSFORM)
+    datasets.MNIST('./data', download=False, train=True, transform=TRANSFORM)
 
 TRAIN_SET, TEST_SET = \
     torch.utils.data.Subset(TRAIN_SET, range(0, 1000)), \
