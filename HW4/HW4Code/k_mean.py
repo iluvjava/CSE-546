@@ -84,7 +84,6 @@ class KMean:
     def _ComputeCentroid(this):
         """
             Compute centroid using the current assignment.
-
         :return:
         """
         for Centroid, Idx in this.Assignment.items():
