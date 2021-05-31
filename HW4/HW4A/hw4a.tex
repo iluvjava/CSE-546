@@ -38,7 +38,7 @@
     \subsection*{A1.c}
         False. The objective should not be choosing $k$ to minimize the Loss because if $k = n$ is always the global minimum in that case and it doesn't provide any useful interpretations on the data. 
     \subsection*{A1.d}
-        False. Singular values Decomposition has $U, V$ that are the eigenvectors for $XX^T$ and $X^TX$, eigen values decomposition is not unque because you can multiply eigenvector by negative one (or even worse by the complex unit $exp(i\theta)$) to get another normalized eigen vector that still works. In the case of SVD remember to flip the $u, v$ vector corssponds to the same singular value together to get different decomposition for the same matrix. 
+        False. Singular values Decomposition has $U, V$ that are the eigenvectors for $XX^T$ and $X^TX$, eigen values decomposition is not unque because you can multiply eigenvector by negative one (or even worse by the complex unit $\exp(i\theta)$) to get another normalized eigen vector that still works. In the case of SVD remember to flip the $u, v$ vector corssponds to the same singular value together to get different decomposition for the same matrix. 
     \subsection*{A1.e}
         False when the matrix is degenerate. In this case a eigenvalue can have a geometric multiplicity higher than it's algebaric multiplicity, then the rank of the matrix will be more than the number of eigenvalues it has. 
     \subsection*{A1.f}
@@ -47,12 +47,199 @@
     
 \section*{A2: Basics of SVD and Subgradients}
     \subsection*{A2.a}
-        \subsubsection*{A2.a.(a)}
-        \subsubsection*{A2.a.(b)}
+        \subsubsection*{A2.a.(a)}\label{A2.a.a}
+            I will just show you the math and explain some keys step on why this is true. This one easy to show because there is a closed form solution that we can incorperate the singular value decomposition for the convariance matrix. let's consider the gradient of the objective function set to zero. s
+            \begin{align*}\tag{A2.a.a.1}\label{eqn:A2.a.a.1}
+                \nabla\left[
+                    \Vert Xw - y\Vert_2^2 + \lambda \Vert w \Vert_2^2
+                \right] &= \mathbf{0}
+                \\
+                2X^T(Xw - y) + 2 \lambda w &= \mathbf{0}
+                \\
+                X^T(Xw - y) + 2\lambda w &= \mathbf{0}
+                \\
+                X^TX w - X^Ty + \lambda w &= 0
+                \\
+                (X^TX + \lambda I)w &= X^Ty
+            \end{align*}
+            Using the Singular value decomposition we have: 
+            \begin{align*}\tag{A2.a.a.2}\label{eqn:A2.a.a.2}
+                X^TX &= (U\Sigma V^T)^T(U\Sigma V^T)
+                \\
+                X^TX &= (V\Sigma U^T)(U\Sigma V^T)
+                \\
+                X^TX &= V\Sigma^2 V^T
+            \end{align*}
+            We make use of the fact that, $U, V$ are unitary matrices and the singular matrix $\Sigma$ is a diagonal, containing all the singular vaues ranked in order of magnitude, and padded with zeros. Here we consider the case of Economic Singular Value Decomposition. Substituting the previous expression to the previous previous expression we have: 
+            \begin{align*}\tag{A2.a.a.3}\label{eqn:A2.a.a.3}
+                \hat{w}_R &= (X^TX + \lambda I)^{-1}X^Ty 
+                \\
+                \hat{w}_R &= ((V\Sigma^2 V) + V(\lambda I)V^T)^{-1}X^Ty
+                \\
+                \hat{w}_R &= (V(\Sigma^2 + \lambda I)V^T)^{-1}X^Ty
+                \\
+                \hat{w}_R &= V^T(\Sigma^2 + \lambda I)^{-1}VX^Ty
+                \\
+                \Vert \hat{w}_R\Vert_2 &= 
+                \Vert V^T \Vert_2 
+                \Vert (\Sigma^2 + \lambda)^{-1} \Vert_2
+                \Vert \Vert V \Vert_2
+                \Vert X^T\Vert_2 
+                \Vert y\Vert_2
+                \\
+                \Vert \hat{w}_R\Vert_2 &= \left(\sum_{i = 1}^{\min(m, n)} \frac{1}{\sigma^2_i + \lambda}\right)
+                \Vert X^T\Vert_2
+                \Vert y\Vert
+            \end{align*}
+            Taking the limit as $\lambda \rightarrow \infty$ will yield zero for the norm of $\hat{w}_R$, and in this case, here are the facts we used
+            \begin{enumerate}
+                \item[1.] we used the fact that the induced 2 norm of a unitary matrix is one, which will be proven in the next part. 
+                \item[2.] And the induced 2 norm for a diagonal matrix is just the sum of all it's diagonal elements.
+                \item[3.] The inverse of a unitary matrix is it's Transpose, assuming it's real, and in this case, $U, V$ are unitary matrices.  
+                \item[4.] $(AB)^{-1} = B^{-1}B^{-1}$ assuming invertible $A, B$ 
+                \item[5.] $(AB)^T = B^TA^T$
+            \end{enumerate}
+            Note: The bound on the summation is implicitly making the assumption that $X$ is a $m \times n$ or $n\times m$ matrix. 
+        \subsubsection*{A2.a.(b)}\label(A2.a.b)
+            From the previous part, \hyperref[A2.a.a]{A2.a(a)}, I have shown that $X^TX = V\Sigma^2 V$ where $X = U\Sigma V$. And in this question, we just had $U$ instead of $X$, let's use $X$, cause $U$ is already involved in the SVD. Let $\Sigma = I_n$ which sets the singular values of $X$ to be all ones, then $X^TX = VI_nV^T = I_n$ Becase $V$ is a unitary matrix and its inverse it's its transpose, similarly for $XX^T$
+            \begin{align*}\tag{A2.a.b.1}\label{eqn:A2.a.b.1}
+                XX^T &= (U\Sigma V^T)(U\Sigma V^T)^T
+                \\
+                XX^T &= (U\Sigma V^T)(V\Sigma U^T)
+                \\
+                XX^T &= (U\Sigma \Sigma U^T
+                \\
+                XX^T &= U \underbrace{\Sigma^2}_{I_n} U^T
+                \\
+                XX^T &= UU^T = I_n
+            \end{align*}
+            Now, using the definition of the Norm we have: 
+            \begin{align*}\tag{A2.a.b.2}\label{eqn:A2.a.b.2}
+                \Vert Ux\Vert_2^2 &= (Ux)^T(Ux)
+                \\
+                x^TUUx &= x^Tx
+                \\
+                &= \Vert x\Vert_2^2
+            \end{align*}
+
     \subsection*{A2.b}
+        \subsubsection*{A2.0: Preliminaries}
+            Let's denote the set of $\{g: f(y) \ge  f(x) + g^T(y - x)\}$ to be $\partial[f]$, which is really a compact set in the Euclidean space. In the case of vector is going to be a cone. 
+            \\[1.1em]
+            From the problem statement we gather: $\exists i \in [m]: f(x) =f_i(x)\implies \partial[f_i]\subseteq \partial[f]$. Now, if we make the deliberate choisce on $i$ for a given particular $x$, we can make the claim that: 
+            \begin{align*}\tag{A2.0.1}\label{eqn:A2.0.1}
+                \partial[f]= \left(
+                    \inf_{i\in[m]} \lbrace\partial[f_i]\rbrace, 
+                    \sup_{i\in[m]} \lbrace\partial[f_i]\rbrace
+                \right)
+            \end{align*}
+            Basically, we can choose the $i$ such to find a lower and upper bound for the sub gradient of $f$, a function defined via: $f(x)=\max_i\{f_i(x)\}$. 
+            \\[1.1em]
+            And when we consider the sum of a lot of convex functions $\sum_{i = 1}^{n}f_i(x)$, then:
+            \begin{align*}\tag{A2.0.2}\label{eqn:A2.0.2}
+                f_i(y) &\ge f_i(x) + v^T(x - y)  \quad \forall i \in [m], v \in \partial[f_i](x)
+                \\
+                \sum_{i=1}^{m}f_i(x) &\ge 
+                v^T(x - y) 
+                \quad \forall v \in 
+                \left(
+                    \sum_{i=1}^{m}\inf \{\partial [f_i]\} , \sum_{i=1}^{m} \sup\{\partial [f_i]\}
+                \right)
+            \end{align*}
+            And this is how summation for sub gradient works if we want to sum up several functions, we just need to sup up the supremum and infinum to get the range for the new subgradient, which is still going to be a compact set, or a cone. 
         \subsubsection*{A2.b.(a)}
+            \begin{align*}\tag{a2.b.a.1}\label{eqn:a2.b.a.1}
+                & \partial\left[\sum_{i = 1}^{n} |x_i|\right] 
+                \\
+                &= \sum_{i = 1}^{n} \partial[|x_i|]
+                \\
+                &= \sum_{i = 1}^{n} g_i\mathbf{e}_i 
+            \end{align*}
+            $g_i$ is essentially: 
+            \begin{align*}\tag{a2.b.a.2}\label{eqn:a2.b.a.2}
+                g_i \in \partial[|x_i|] = \begin{cases}
+                    \{1\} & x_i \ge 1
+                    \\
+                    [-1, 1] & x_i = 0
+                    \\
+                    \{-1\} & x_i \le 0
+                \end{cases}                
+            \end{align*}
+            And using the hint from the next part, the sub gradient of $\Vert x\Vert_1$ is the convex combinations of all $g_i\mathbf{e}_i$: 
+            \begin{align*}\tag{a2.b.a.3}\label{eqn:a2.b.a.3}
+                \sum_{i = 1}^{n}\lambda_i g_i\mathbf{e}_i \in \partial[\Vert x\Vert_1] \quad 
+                \sum_{i=1}^{n}\lambda_i \le 1 \wedge \lambda_i \ge 0
+            \end{align*}
+            And the span of all sub gradient for each $|x_i|$ will make up the set of sub-gradient for the original function, and hence, let $v_j$ be the $j$ th element of the sub gradient of $\Vert x\Vert_1$, the closed form will be: 
+            \begin{align*}\tag{A2.b.1.3}\label{eqn:A2.b.1.3}
+                v_j \in \begin{cases}
+                    \{1\} & x_j > 0 
+                    \\
+                    [-1 ,1] & x_j = 0
+                    \\
+                    \{-1\} & x_j \le 0
+                \end{cases}
+            \end{align*}
         \subsubsection*{A2.b.(b)}
+            Let $\lambda_i$ be the set of coefficients for a convex combinations, meaning that $\sum_{i = 1}^{n} \lambda_i = 1$ and $\lambda_i \ge 0$, implying that $\lambda_i \in (0, 1)$. Using this fact and the definition of $f(x):= \max\{f_i(x)\}_i^{m}$, consider the following:
+            \begin{align*}\tag{A2.b.b.1}\label{eqn:A2.b.b.1}
+                f(y) &\ge f_i(y) \quad \forall\; i
+                \\
+                \lambda_i f(y) &\ge \lambda_i f_i(y) \quad\forall\; i
+                \\
+                \sum_{i = 1}^{m}\lambda_i f(y) &\ge 
+                \sum_{i = 1}^{m}\lambda_i f_i(y) 
+                \\
+                \underset{(1)}{\implies} f(y) &\ge \sum_{i = 1}^{m}\lambda_i f_i(y)
+                \\
+                f(y) &\ge \left(
+                    \underbrace{\sum_{i = 1}^{m}\lambda_i f_i(x)}_{\le f(x)}
+                \right) + \lambda_i \nabla[f_i](x)^T(y - x)
+                \\
+                \underset{(2)}{\implies} f(y) &\ge f(x) + \lambda_i \nabla[f_i](x)^T(y - x) \quad \forall \; i
+            \end{align*}
+            \begin{enumerate}
+                \item[(1)]: True because the convex combinations coefficients $\sum_{i =1}^m \lambda_i = 1$ and $f(y)$ is independent of the summation. 
+                \item[(2)]: True because the $\sum_{i = 1}^{m}\lambda_i f_i(x) \le f(x)$ is already proven in (1).  
+            \end{enumerate}
+            Now, we are free to choose $\lambda_i$ to find the bound of the all the convex combinations of the sub gradient on $f_i$ at $x$. Therefore, the sub-gradient is the set defined as the following: 
+            \begin{align*}\tag{A2.b.b.2}\label{eqn:A2.b.b.2}
+                (\partial[f](x))_j = \left(
+                    \inf\left\lbrace
+                        (\nabla[f_i](x))_j
+                    \right\rbrace_{i = 1}^m ,  
+                    \sup\left\lbrace
+                        (\nabla[f_i](x))_j
+                    \right\rbrace_{i=1}^m
+                \right)
+            \end{align*}
+            \textbf{Note}: The notation of $(\bullet)_j$ is denoting the $j$ th element of a vector, in this case, we are saying that the $j$ th element of the sub gradient vector for $f$ is bounded by the sup and inf of the $j$ th element of the gradient of the smooth function $f_i$. 
     \subsection*{A2.c}
+        In this case $f_i(x) = |x_i - (1 + \eta/i)|$ hence we can say $v_i$ is a subgradient of $f_i$ if:
+        \begin{align*}\tag{A2.c.1}\label{eqn:A2.c.1}
+            v_i \in \partial[|x_i - (1 + \eta/i)|] = \begin{cases}
+                \{1\} & x > 1 + \frac{\eta}{i} 
+                \\
+                [-1, 1] & x_i = 1 + \frac{\eta}{i}
+                \\
+                \{-1\} & x_i < 1 + \frac{\eta}{i}
+            \end{cases}
+            \\
+            \implies \forall x\in \text{dom}(f), i\in [n]: \quad
+            -1 \le v_i \le 1
+            \\
+            \implies \Vert v_i\mathbf{e_i}\Vert_\infty \le 1
+        \end{align*}
+        Therefore, we know that the convex combinations will be bounded too and it's like: 
+        \begin{align*}\tag{A2.c.2}\label{eqn:A2.c.2}
+            \forall \lambda_i \ge 0 \wedge \sum_{i = 1}^{n}\lambda_i \le 1:
+            \quad 
+            \left\Vert 
+                \underbrace{\sum_{i = 1}^{n}\lambda_iv_i\mathbf{e}_i}_{\in \partial[f]} 
+            \right\Vert \in [-1, 1]
+        \end{align*}
+        Therefore, the infinity norm of the sub gradient of the function $f$ is in the set interval $[-1, 1]$. 
+            
 \section*{A3: PCA}
     \subsection*{A3.a}
     \subsection*{A3.b}
@@ -60,11 +247,656 @@
     \subsection*{A3.d}
     \subsection*{A3.e}
 
-\section*{Unsupervised Learning with Autoencoders}
+\section*{A4: Unsupervised Learning with Autoencoders}
+    \subsection*{A4.a}
+        The Train Error for $h\in\{32, 64, 128\}$ for the linear models are: 
+        \begin{enumerate}
+            \item[1.] $h = 32$, Total Epochs: 30 Train Final MSE Loss: 0.07298633098602295
+            \item[2.] $h = 64$, Total Epochs: 30 Train Final MSE Loss: 0.07428810136703154
+            \item[3.] $h = 128$, Total Epochs: 30 Train Final MSE Loss: 0.058713519498705916 
+        \end{enumerate}
+        The MSE loss is computed via $\frac{1}{N}\sum_{i=1}^{N} \Vert f(g(x_i)) - x_i \Vert_2^2$, Where $f, g$ are the encoder and decoder. The losses are divided by the total number of batches from the data loader, hence the error in the end is the squared loss on a persample basis. For code implementation, refers \hyperref[A4.Code]{A4.Code}. 
+        \\
+        The Autoencoder is trained on the whole training data set of MNIST. 
+        \\[1.1em]
+        This is 10 digits reconstruction for $h = 64$ are below, and for all of the reconstruction plots for pairs of digits with $h=32, 128$, please refer to \hyperref[extra-a4-lin]{Appendix}.
+        \begin{center}
+            \includegraphics*[width=12cm]{A4plots/06-43-17-h-64-lin-digit-0.png}
+        \end{center}
+        \begin{center}
+            \includegraphics*[width=12cm]{A4plots/06-43-18-h-64-lin-digit-1.png}
+        \end{center}
+        \begin{center}
+            \includegraphics*[width=12cm]{A4plots/06-43-18-h-64-lin-digit-2.png}
+        \end{center}
+        \begin{center}
+            \includegraphics*[width=12cm]{A4plots/06-43-18-h-64-lin-digit-3.png}
+        \end{center}
+        \begin{center}
+            \includegraphics*[width=12cm]{A4plots/06-43-18-h-64-lin-digit-4.png}
+        \end{center}
+        \begin{center}
+            \includegraphics*[width=12cm]{A4plots/06-43-18-h-64-lin-digit-5.png}
+        \end{center}
+        \begin{center}
+            \includegraphics*[width=12cm]{A4plots/06-43-19-h-64-lin-digit-6.png}
+        \end{center}
+        \begin{center}
+            \includegraphics*[width=12cm]{A4plots/06-43-19-h-64-lin-digit-7.png}
+        \end{center}
+        \begin{center}
+            \includegraphics*[width=12cm]{A4plots/06-43-19-h-64-lin-digit-8.png}
+        \end{center}
+        \begin{center}
+            \includegraphics*[width=12cm]{A4plots/06-43-19-h-64-lin-digit-9.png}
+        \end{center}
+        
+    \subsection*{A4.b}
+        The train error for $h\in\{32, 64, 128\}$ for the non-linear model with ReLU activation is: 
+        \begin{enumerate}
+            \item[1.] $h=32$, total Epochs: 30 Train Final MSE Loss: 1.2326371114328512
+            \item[2.] $h=64$, Total Epochs: 30 Train Final MSE Loss: 0.0249483520537615
+            \item[3.] $h=128$, Total Epochs: 30 Test Final MSE Loss: 0.024230041910583734
+        \end{enumerate}
+        The MSE is computed the same as part A4.b. And these are some of the reconstruction images for $h=64$: 
+        \begin{center}
+            \includegraphics*[width=12cm]{A4plots/06-53-51-h-64-nonlin-digit-0.png}
+        \end{center}
+        \begin{center}
+            \includegraphics*[width=12cm]{A4plots/06-53-51-h-64-nonlin-digit-1.png}
+        \end{center}
+        \begin{center}
+            \includegraphics*[width=12cm]{A4plots/06-53-51-h-64-nonlin-digit-2.png}
+        \end{center}
+        \begin{center}
+            \includegraphics*[width=12cm]{A4plots/06-53-52-h-64-nonlin-digit-3.png}
+        \end{center}
+        \begin{center}
+            \includegraphics*[width=12cm]{A4plots/06-53-52-h-64-nonlin-digit-4.png}
+        \end{center}
+        \begin{center}
+            \includegraphics*[width=12cm]{A4plots/06-53-52-h-64-nonlin-digit-5.png}
+        \end{center}
+        \begin{center}
+            \includegraphics*[width=12cm]{A4plots/06-53-52-h-64-nonlin-digit-6.png}
+        \end{center}
+        \begin{center}
+            \includegraphics*[width=12cm]{A4plots/06-53-53-h-64-nonlin-digit-7.png}
+        \end{center}
+        \begin{center}
+            \includegraphics*[width=12cm]{A4plots/06-53-53-h-64-nonlin-digit-8.png}
+        \end{center}
+        \begin{center}
+            \includegraphics*[width=12cm]{A4plots/06-53-53-h-64-nonlin-digit-9.png}
+        \end{center}
+        
+    \subsection*{A4.c}
+    \subsection*{A4.d}
+    \subsection*{A4.Code}\label{A4.Code}
+    This is the code I used for the assignment: 
+    \\
+    Filename: ``mnist\_autoencoders''
+        \begin{lstlisting}[language=python]
+### CLASS: CSE 546 SPRING 2021 HW4, A3
+### Name: Hongda Li
+### My code has my style in it don't copy.
+
+
+import numpy as np
+import torch
+import torchvision
+import matplotlib.pyplot as plt
+from time import time
+from torchvision import datasets, transforms
+from torch import nn, optim
+from tqdm import tqdm
+import random as sysrandom
+
+
+TRANSFORM  = transforms.Compose([transforms.ToTensor(),
+                                transforms.Normalize((0.5,), (0.5,)),
+                            ])
+TRAIN_SET = \
+    datasets.MNIST('./data', download=True, train=True, transform=TRANSFORM)
+TEST_SET = \
+    datasets.MNIST('./data', download=False, train=True, transform=TRANSFORM)
+
+TRAIN_SET, TEST_SET = \
+    torch.utils.data.Subset(TRAIN_SET, range(0, 1000)), \
+    torch.utils.data.Subset(TEST_SET, range(0, 1000))
+
+DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+
+class A4Model(nn.Module):
+
+    def __init__(this, h:int, non_linear:bool=False):
+        """
+
+        :param kargs:
+            d: The dimension of the data.
+            h: The width of the hidden layer.
+            activation: TRUE, FALSE
+                Whether to use ReLU activation function on hidden and output layer.
+        """
+        super().__init__()
+        d = 28**2
+        this.L1 = nn.Linear(d, h)
+        this.L2 = nn.Linear(h, d)
+        this.NonLin = non_linear
+        this.MSE = nn.MSELoss()
+
+
+    def forward(this, X):
+        """
+            Feed Forward without Loss function capped onto the output layer.
+        :param X:
+            The data matrix, row data matrix.
+        :return:
+
+        """
+        x = this.L1(X)
+        if this.NonLin:
+            x = nn.ReLU(x)
+        x = this.L2(x)
+        if this.NonLin:
+            x = nn.ReLU(x)
+        return x
+
+    def GetEmbeding(this, X):
+
+        pass
+
+    def FeedForward(this, X):
+        return this.MSE(this(X), X)
+
+
+def MNISTTenUniqueDigitsLoader(train=True):
+    data = \
+        datasets.MNIST('./data', download=True, train=train, transform=TRANSFORM)
+    Indices = []
+    for II in range(10):
+        Idx = torch.where(data.targets == II)[0]
+        Indices.append(Idx[sysrandom.randint(0, len(Idx))])
+    Subset = torch.utils.data.Subset(data, Indices)
+    return torch.utils.data.DataLoader(Subset, batch_size=10, shuffle=False)
+
+
+def BatchThisModel(theModel:A4Model,
+                dataLoader:torch.utils.data.DataLoader,
+                optimizer:optim.Adam=None,
+                transform:callable=None):
+    """
+        Batch this model for one epoch, give me the model optimizer and some
+        extra thing, then it will collect the average loss of one epoch.
+        Note:
+        This one is for Regression Model, it assumes MSE loss, loss of each
+        batch if divided by the total number of batches from the data loader.
+    :param theModel:
+    :param dataLoader:
+    :param transform:
+    :return:
+    """
+    AvgLoss = 0; theModel.to(DEVICE)
+    L = len(dataLoader)
+    for II, (X, _) in enumerate(tqdm(dataLoader)):
+        if transform is not None: X = transform(X)
+        X= X.to(DEVICE)
+        if optimizer is None:
+            with torch.no_grad():
+                AvgLoss += float(theModel.FeedForward(X))/L
+        else:
+            optimizer.zero_grad()
+            Loss = theModel.FeedForward(X)
+            AvgLoss += Loss.item() / L
+            Loss.backward()
+            optimizer.step()
+    with torch.no_grad():
+        Loss = theModel.FeedForward(X)
+        AvgLoss += Loss.item() / L
+    return AvgLoss
+
+
+def GetTrainTestLoaders(bs=100):
+    TrainLoader = \
+        torch.utils.data.DataLoader(TRAIN_SET, batch_size=bs, shuffle=True)
+    TestLoader = \
+        torch.utils.data.DataLoader(TEST_SET, batch_size=bs, shuffle=True)
+    return TrainLoader, TestLoader
+
+
+def Ts():
+    from time import gmtime, strftime
+    TimeStamp = strftime("%H-%M-%S", gmtime())
+    return TimeStamp
+
+
+def mkdir(dir):
+    from pathlib import Path
+    Path(dir).mkdir(parents=True, exist_ok=True)
+
+
+def log(fname:str, content:str, dir):
+    mkdir(dir)
+    TimeStamp = Ts()
+    with open(f"{dir}{TimeStamp}-{fname}.txt","w+") as f:
+        f.write(content)
+
+
+def main():
+    def A4Run(NonLin, h):
+        Bs, Epochs, lr = 100, 30, 0.01
+        Losses = []
+        Model = A4Model(h=h, non_linear=False)
+        Optimizer = optim.Adam(Model.parameters(), lr=lr)
+        TrainLoader, TestsLoader = GetTrainTestLoaders(bs=Bs)
+        for Epoch in range(Epochs):
+            Loss = BatchThisModel(theModel=Model,
+                                dataLoader=TrainLoader,
+                                optimizer=Optimizer,
+                                transform=lambda x: x.reshape(Bs, -1))
+            Losses.append(Loss)
+        log(fname=f"A4-final-train-Loss-h={h}-{'Non' if NonLin else ''}lin-model",
+            content=f"Total Epochs: {Epochs} Train Final MSE Loss: {Losses[-1]}",
+            dir="./A4logs/")
+        def Visualize(Train=True):
+            mkdir("./A4plots")
+            DigitsLoader = MNISTTenUniqueDigitsLoader(Train)
+            for X, _ in DigitsLoader:
+                X = X.reshape(X.shape[0], -1)
+                Reconstructed = Model(X.to(DEVICE))
+            for II, (Row1, Row2) in enumerate(zip(Reconstructed.data, X.data)):
+                Together = torch.zeros(28, 28*2)
+                Together[:, :28] = Row1.reshape(28, 28)
+                Together[:,28:]  = Row2.reshape(28, 28)
+                plt.matshow(Together)
+                plt.title(f"h:{h}, ReLU Model: {NonLin}, left reconstructed, right Original\n"
+                f"{'Train Set' if Train else 'Test Set'}")
+                plt.savefig(f"./A4plots/{Ts()}-h-{h}-{'non' if NonLin else ''}lin-digit-{II}.png")
+                plt.show()
+
+        Visualize()
+        if h == 128:
+            Loss = BatchThisModel(theModel=Model,
+                                dataLoader=TestsLoader,
+                                transform=lambda x: x.reshape(Bs, -1))
+            log(fname=f"A4-test-loss-h={h}-{'Non' if NonLin else ''}lin-model",
+                content=f"Total Epochs: {Epochs} Test Final MSE Loss: {Loss}",
+                dir="./A4logs/")
+
+
+        return Model, Losses
+
+    A4Run(False, h=32)
+    A4Run(False, h=64)
+    A4Run(False, h=128)
+    A4Run(True, h=32)
+    A4Run(True, h=64)
+    A4Run(True, h=128)
+
+
+
+if __name__ == "__main__":
+    import os
+    print(os.curdir)
+    print(os.getcwd())
+    main()
+        \end{lstlisting}
     
-\section*{K-Mean Clustering}
     
+\section*{A5: K-Mean Clustering}
+    \subsection*{A5.code}
+        This is the code I used for the whole $A5$, it contains my implementation of the Loyd's Kmeans algorithm using numpy. 
+        \begin{lstlisting}[language=python]
+### CLASS CSE 564 SPRING 2021 HW4 A4
+### Name: Hongda Li
+### My code has my style in it don't copy.
+
+import numpy as np
+import matplotlib.pyplot as plt
+from torchvision import datasets
+from mnist import MNIST
+from tqdm import tqdm
+zeros = np.zeros
+randint = np.random.randint
+randn = np.random.randn
+
+
+if "MNIST_DATA" not in dir(): # running on interactive console will be faster
+    datasets.MNIST('./data', download=True, train=True)
+    MNIST_DATA = MNIST("./data/MNIST/raw/")
+    TRAIN_X, _= MNIST_DATA.load_training()
+    TEST_X, _ = MNIST_DATA.load_testing()
+    TRAIN_X= np.array(TRAIN_X, dtype=np.float)/255
+    TEST_X = np.array(TEST_X, dtype=np.float)/255
+    print("Mnist Dataset is ready.")
+
+
+
+# ======================= Helper Functions =====================================
+
+def Ts():
+    from datetime import datetime
+    SysTime = datetime.now()
+    TimeStamp = SysTime.strftime("%H-%M-%S")
+    return TimeStamp
+
+
+def mkdir(dir):
+    from pathlib import Path
+    Path(dir).mkdir(parents=True, exist_ok=True)
+
+
+def log(fname:str, content:str, dir):
+    mkdir(dir)
+    TimeStamp = Ts()
+    with open(f"{dir}{TimeStamp}-{fname}.txt","w+") as f:
+        f.write(content)
+
+
+# ==============================================================================
+
+class KMean:
+
+    def __init__(this, k:int, X:np.ndarray):
+        """
+
+        :param k: Number of cluster
+        :param X: Row data matrix in np array type
+        """
+        assert k < X.shape[0] and k > 1
+        assert X.ndim == 2
+        n, d= X.shape[0], X.shape[1]
+        this._X = X
+        # this._AugX = X[:, :, np.newaxis]
+        this.Assignment = {}
+        this._C = np.transpose(this._X[randint(0, n, k), :][...,np.newaxis],
+                                (2, 1, 0))
+        this._ComputeAssignment()
+
+    @property
+    def Centroids(this):
+        return np.transpose(this._C, (2, 1, 0))[..., 0].copy()
+    @property
+    def X(this):
+        return this._X.copy()
+    @property
+    def AugX(this):
+        return this._AugX.copy()
+    @property
+    def C(this):
+        return this._C.copy()
+
+    def TransferLearningFrom(this, other):
+        this._C = other.C
+        this._ComputeAssignment()
+
+    def _ComputeCentroid(this):
+        """
+            Compute centroid using the current assignment.
+
+        :return:
+        """
+        for Centroid, Idx in this.Assignment.items():
+            this._C[..., Centroid] = \
+                np.mean(this._X[Idx], axis=0, keepdims=True)
+
+    def _ComputeAssignment(this, XTest=None):
+        """
+        Given current centroids make an assignment.
+        :return:
+        """
+
+        X = this._X if XTest is None else XTest
+        Distances = zeros((X.shape[0], 1, this._C.shape[2]))
+        for CIdx in range(this._C.shape[2]):
+            Centroid = this._C[..., CIdx]
+            Distances[..., CIdx] = np.sum((X - Centroid)**2,
+                                            axis=1,
+                                            keepdims=True)
+        AssignmentVec = np.argmin(Distances, axis=2).reshape(-1)
+        NewAssignment = {}
+        for Idx, Class in enumerate(AssignmentVec):
+            IdxArr = NewAssignment.get(Class, [])
+            IdxArr.append(Idx)
+            NewAssignment[Class] = IdxArr
+        if XTest is None:
+            this.Assignment = NewAssignment
+        del Distances
+        return NewAssignment.copy()
+
+    def Update(this):
+        this._ComputeCentroid()
+        this._ComputeAssignment()
+
+    def Loss(this, Xtest=None):
+        X = this._X if Xtest is None else Xtest
+        TestAssignment = this._ComputeAssignment(Xtest)
+        Centroids = this.Centroids
+        Loss = 0
+        for CentroidIdx, Idx in TestAssignment.items():
+            Loss += np.sum((X[Idx] - Centroids[CentroidIdx, :])**2)
+        return Loss/X.shape[0]
+
+
+def main():
+
+    def BasicTest():
+        Points1 = randn(1000, 2)
+        Points2 = np.array([[3, 3]]) + randn(1000, 2)
+        PointsAll = np.concatenate((Points1, Points2), axis=0)
+        Km = KMean(X=PointsAll, k=2)
+        Losses = []
+        for II in range(10):
+            Km.Update()
+            Losses.append(Km.Loss())
+        plt.plot(Losses)
+        plt.show()
+        return Km
+
+    def Learn(Km:KMean, n=None):
+        Losses = []
+        if n is not None:
+            for _ in tqdm(range(n)):
+                Km.Update()
+                Losses.append(Km.Loss())
+        else:
+            C = Km.Centroids
+            while True:
+                Km.Update()
+                Losses.append(Km.Loss())
+                Delta = np.linalg.norm(C - Km.Centroids, np.inf)
+                print(f"Delta: {Delta}")
+                if Delta < 1e-1:
+                    break
+                C = Km.Centroids
+        return Km, Losses
+
+    def ClusterMnist(k=10,X=None):
+        if X is None: X = TRAIN_X
+        Km, Losses = Learn(KMean(X=X,k=k))
+        return Km, Losses
+
+
+    def A5b():
+        Km, Losses = Learn(KMean(X=TRAIN_X,k=10))
+        plt.plot(Losses)
+        plt.title("A5(b) Kmean k=10")
+        plt.xlabel("Iteration")
+        plt.ylabel("Average Loss")
+        mkdir("./A5bplots")
+        plt.savefig(f"./A5bplots/{Ts()}-A5b-k=10-losses.png")
+        plt.show()
+        AllCentroid = zeros((28*2, 28*5))
+        for Idx, Centroid in enumerate(Km.Centroids):
+            Image = Centroid.reshape((28, 28))
+            VerticalOffset, HorizontalOffset = (Idx//5)*28, (Idx%5)*28
+            AllCentroid[VerticalOffset:VerticalOffset+28,
+            HorizontalOffset:HorizontalOffset+28] = Image
+        plt.matshow(AllCentroid)
+        plt.title("A5(b):Cenroids fond by Kmean")
+        plt.savefig(f"./A5bplots/{Ts()}-A5b-k=10-centroids.png")
+        plt.show()
+
+    def A5c():
+        NumberOfCluster = list(map(lambda x: 2**x,range(1, 7)))
+        TrainLosses, TestLosses = [], []
+        for K in NumberOfCluster:
+            Km, Losses = ClusterMnist(k=K, X=TRAIN_X[:5000])
+            TrainLosses.append(Losses[-1])
+            TestLosses.append(Km.Loss(TEST_X))
+        plt.plot(NumberOfCluster, TrainLosses, ".-")
+        plt.plot(NumberOfCluster, TestLosses, ".-")
+        plt.legend(["Losses on Train Set", "Losses on Test Set"])
+        plt.title("K-Mean on MNIST, Cluster Number vs Loss")
+        plt.xlabel("Number of Cluster")
+        plt.ylabel("Loss")
+        plt.savefig(f"./A5bplots/{Ts()}-A5b-k-vs-loss.png")
+        plt.show()
+
+    # A5b()
+    A5c()
+
+
+
+
+if __name__ == "__main__":
+    import os
+    print(f"{os.getcwd()}")
+    print(f"{os.curdir}")
+    main()            
+        \end{lstlisting}
+    \subsection*{A5.a}
+        
+    \subsection*{A5.b}
+        
+    \subsection*{A5.c}
+        
 \section*{ML in the Real World}
 
 
+\section*{Appendix}
+    \subsection*{Extra A4Plots}
+        \subsubsection*{Extra Plots for Linear Model}\label{extra-a4-lin}
+            \begin{center}
+                \includegraphics*[width=12cm]{./A4plots/06-39-48-h-32-lin-digit-0.png}
+            \end{center}
+            \begin{center}
+                \includegraphics*[width=12cm]{./A4plots/06-39-48-h-32-lin-digit-1.png}
+            \end{center}
+            \begin{center}
+                \includegraphics*[width=12cm]{./A4plots/06-39-49-h-32-lin-digit-2.png}
+            \end{center}
+            \begin{center}
+                \includegraphics*[width=12cm]{./A4plots/06-39-49-h-32-lin-digit-3.png}
+            \end{center}
+            \begin{center}
+                \includegraphics*[width=12cm]{./A4plots/06-39-49-h-32-lin-digit-4.png}
+            \end{center}
+            \begin{center}
+                \includegraphics*[width=12cm]{./A4plots/06-39-49-h-32-lin-digit-5.png}
+            \end{center}
+            \begin{center}
+                \includegraphics*[width=12cm]{./A4plots/06-39-49-h-32-lin-digit-6.png}
+            \end{center}
+            \begin{center}
+                \includegraphics*[width=12cm]{./A4plots/06-39-50-h-32-lin-digit-7.png}
+            \end{center}
+            \begin{center}
+                \includegraphics*[width=12cm]{./A4plots/06-39-50-h-32-lin-digit-8.png}
+            \end{center}
+            \begin{center}
+                \includegraphics*[width=12cm]{./A4plots/06-39-50-h-32-lin-digit-9.png}
+            \end{center}
+            \begin{center}
+                \includegraphics*[width=12cm]{./A4plots/06-46-47-h-128-lin-digit-0.png}
+            \end{center}
+            \begin{center}
+                \includegraphics*[width=12cm]{./A4plots/06-46-47-h-128-lin-digit-1.png}
+            \end{center}
+            \begin{center}
+                \includegraphics*[width=12cm]{./A4plots/06-46-47-h-128-lin-digit-2.png}
+            \end{center}
+            \begin{center}
+                \includegraphics*[width=12cm]{./A4plots/06-46-47-h-128-lin-digit-3.png}
+            \end{center}
+            \begin{center}
+                \includegraphics*[width=12cm]{./A4plots/06-46-48-h-128-lin-digit-4.png}
+            \end{center}
+            \begin{center}
+                \includegraphics*[width=12cm]{./A4plots/06-46-48-h-128-lin-digit-5.png}
+            \end{center}
+            \begin{center}
+                \includegraphics*[width=12cm]{./A4plots/06-46-48-h-128-lin-digit-6.png}
+            \end{center}
+            \begin{center}
+                \includegraphics*[width=12cm]{./A4plots/06-46-48-h-128-lin-digit-7.png}
+            \end{center}
+            \begin{center}
+                \includegraphics*[width=12cm]{./A4plots/06-46-49-h-128-lin-digit-8.png}
+            \end{center}
+            \begin{center}
+                \includegraphics*[width=12cm]{./A4plots/06-46-49-h-128-lin-digit-9.png}
+            \end{center}
+        \subsubsection*{Extra Plots for Linear Model}\label{extra-a4-nonlin}
+            \begin{center}
+                \includegraphics*[width=12cm]{A4plots/06-50-22-h-32-nonlin-digit-0.png}
+            \end{center}  
+            \begin{center}
+                \includegraphics*[width=12cm]{A4plots/06-50-22-h-32-nonlin-digit-1.png}
+            \end{center}  
+            \begin{center}
+                \includegraphics*[width=12cm]{A4plots/06-50-23-h-32-nonlin-digit-2.png}
+            \end{center}  
+            \begin{center}
+                \includegraphics*[width=12cm]{A4plots/06-50-23-h-32-nonlin-digit-3.png}
+            \end{center}  
+            \begin{center}
+                \includegraphics*[width=12cm]{A4plots/06-50-23-h-32-nonlin-digit-4.png}
+            \end{center}  
+            \begin{center}
+                \includegraphics*[width=12cm]{A4plots/06-50-23-h-32-nonlin-digit-5.png}
+            \end{center}  
+            \begin{center}
+                \includegraphics*[width=12cm]{A4plots/06-50-24-h-32-nonlin-digit-6.png}
+            \end{center}  
+            \begin{center}
+                \includegraphics*[width=12cm]{A4plots/06-50-24-h-32-nonlin-digit-7.png}
+            \end{center}  
+            \begin{center}
+                \includegraphics*[width=12cm]{A4plots/06-50-24-h-32-nonlin-digit-8.png}
+            \end{center}  
+            \begin{center}
+                \includegraphics*[width=12cm]{A4plots/06-50-24-h-32-nonlin-digit-9.png}
+            \end{center}            
+            % 128
+            \begin{center}
+                \includegraphics*[width=12cm]{A4plots/06-57-22-h-128-nonlin-digit-0.png}
+            \end{center}
+            \begin{center}
+                \includegraphics*[width=12cm]{A4plots/06-57-22-h-128-nonlin-digit-1.png}
+            \end{center}
+            \begin{center}
+                \includegraphics*[width=12cm]{A4plots/06-57-22-h-128-nonlin-digit-2.png}
+            \end{center}
+            \begin{center}
+                \includegraphics*[width=12cm]{A4plots/06-57-22-h-128-nonlin-digit-3.png}
+            \end{center}
+            \begin{center}
+                \includegraphics*[width=12cm]{A4plots/06-57-23-h-128-nonlin-digit-4.png}
+            \end{center}
+            \begin{center}
+                \includegraphics*[width=12cm]{A4plots/06-57-23-h-128-nonlin-digit-5.png}
+            \end{center}
+            \begin{center}
+                \includegraphics*[width=12cm]{A4plots/06-57-23-h-128-nonlin-digit-6.png}
+            \end{center}
+            \begin{center}
+                \includegraphics*[width=12cm]{A4plots/06-57-23-h-128-nonlin-digit-7.png}
+            \end{center}
+            \begin{center}
+                \includegraphics*[width=12cm]{A4plots/06-57-23-h-128-nonlin-digit-8.png}
+            \end{center}
+            \begin{center}
+                \includegraphics*[width=12cm]{A4plots/06-57-24-h-128-nonlin-digit-9.png}
+            \end{center}
 \end{document}

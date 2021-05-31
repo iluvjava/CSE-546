@@ -37,7 +37,8 @@ class A4Model(nn.Module):
             d: The dimension of the data.
             h: The width of the hidden layer.
             activation: TRUE, FALSE
-                Whether to use ReLU activation function on hidden and output layer.
+                Whether to use ReLU activation function on hidden and
+                output layer.
         """
         super().__init__()
         d = 28**2
@@ -73,7 +74,9 @@ class A4Model(nn.Module):
 
 def MNISTTenUniqueDigitsLoader(train=True):
     data = \
-        datasets.MNIST('./data', download=True, train=train, transform=TRANSFORM)
+        datasets.MNIST('./data', download=True,
+                       train=train,
+                       transform=TRANSFORM)
     Indices = []
     for II in range(10):
         Idx = torch.where(data.targets == II)[0]
@@ -170,9 +173,11 @@ def main():
                 Together[:, :28] = Row1.reshape(28, 28)
                 Together[:,28:]  = Row2.reshape(28, 28)
                 plt.matshow(Together)
-                plt.title(f"h:{h}, ReLU Model: {NonLin}, left reconstructed, right Original\n"
+                plt.title(f"h:{h}, ReLU Model: {NonLin}, "
+                          f"left reconstructed, right Original\n"
                 f"{'Train Set' if Train else 'Test Set'}")
-                plt.savefig(f"./A4plots/{Ts()}-h-{h}-{'non' if NonLin else ''}lin-digit-{II}.png")
+                plt.savefig(f"./A4plots/{Ts()}-h-{h}-{'non' if NonLin else ''}"
+                            f"lin-digit-{II}.png")
                 plt.show()
 
         Visualize()
@@ -193,7 +198,6 @@ def main():
     A4Run(True, h=32)
     A4Run(True, h=64)
     A4Run(True, h=128)
-
 
 
 if __name__ == "__main__":

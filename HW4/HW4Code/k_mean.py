@@ -26,8 +26,9 @@ if "MNIST_DATA" not in dir(): # running on interactive console will be faster
 # ======================= Helper Functions =====================================
 
 def Ts():
-    from time import gmtime, strftime
-    TimeStamp = strftime("%H-%M-%S", gmtime())
+    from datetime import datetime
+    SysTime = datetime.now()
+    TimeStamp = SysTime.strftime("%H-%M-%S")
     return TimeStamp
 
 
@@ -61,7 +62,6 @@ class KMean:
         this.Assignment = {}
         this._C = np.transpose(this._X[randint(0, n, k), :][...,np.newaxis],
                                (2, 1, 0))
-        this._Distances = np.zeros((n, 1, k))
         this._ComputeAssignment()
 
     @property
@@ -91,24 +91,29 @@ class KMean:
             this._C[..., Centroid] = \
                 np.mean(this._X[Idx], axis=0, keepdims=True)
 
-    def _ComputeAssignment(this):
+    def _ComputeAssignment(this, XTest=None):
         """
         Given current centroids make an assignment.
         :return:
         """
 
+        X = this._X if XTest is None else XTest
+        Distances = zeros((X.shape[0], 1, this._C.shape[2]))
         for CIdx in range(this._C.shape[2]):
             Centroid = this._C[..., CIdx]
-            this._Distances[..., CIdx] = \
-                np.sum((this._X - Centroid)**2, axis=1, keepdims=True)
-
-        AssignmentVec = np.argmin(this._Distances, axis=2).reshape(-1)
+            Distances[..., CIdx] = np.sum((X - Centroid)**2,
+                                          axis=1,
+                                          keepdims=True)
+        AssignmentVec = np.argmin(Distances, axis=2).reshape(-1)
         NewAssignment = {}
         for Idx, Class in enumerate(AssignmentVec):
             IdxArr = NewAssignment.get(Class, [])
             IdxArr.append(Idx)
             NewAssignment[Class] = IdxArr
-        this.Assignment = NewAssignment
+        if XTest is None:
+            this.Assignment = NewAssignment
+        del Distances
+        return NewAssignment.copy()
 
     def Update(this):
         this._ComputeCentroid()
@@ -116,9 +121,10 @@ class KMean:
 
     def Loss(this, Xtest=None):
         X = this._X if Xtest is None else Xtest
+        TestAssignment = this._ComputeAssignment(Xtest)
         Centroids = this.Centroids
         Loss = 0
-        for CentroidIdx, Idx in this.Assignment.items():
+        for CentroidIdx, Idx in TestAssignment.items():
             Loss += np.sum((X[Idx] - Centroids[CentroidIdx, :])**2)
         return Loss/X.shape[0]
 
@@ -197,7 +203,8 @@ def main():
         plt.ylabel("Loss")
         plt.savefig(f"./A5bplots/{Ts()}-A5b-k-vs-loss.png")
         plt.show()
-    A5b()
+
+    # A5b()
     A5c()
 
 
