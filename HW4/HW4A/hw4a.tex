@@ -544,8 +544,10 @@ if __name__ == "__main__":
     
     
 \section*{A5: K-Mean Clustering}
-    \subsection*{A5.code}
+    \subsection*{A5.a}\label{A5.a}
         This is the code I used for the whole $A5$, it contains my implementation of the Loyd's Kmeans algorithm using numpy. 
+        \\[1.1em]
+        filename: ``k\_mean.py''
         \begin{lstlisting}[language=python]
 ### CLASS CSE 564 SPRING 2021 HW4 A4
 ### Name: Hongda Li
@@ -765,11 +767,32 @@ if __name__ == "__main__":
     print(f"{os.curdir}")
     main()            
         \end{lstlisting}
-    \subsection*{A5.a}
         
     \subsection*{A5.b}
-        
+        This is the error for the k mean algorithm with $k = 10$. The algorithm iterates until the maximal centroid's position doesn't change by more than $1e-2$. 
+        \\[1.1em]
+        Note, here are some implementation details that might effect the average loss for each samples computed: 
+        \begin{enumerate}
+            \item[$\bullet$]: I normalized the MNIST data by dividing it by 255 so all the piexles values are in $[0, 1]$. 
+            \item[$\bullet$]: It's trained on the whole MNIST train datasset.  
+        \end{enumerate}
+        Code: \hyperref[A5.a]{A5.a}
+        \begin{center}
+            \includegraphics*[width=12cm]{A5bplots/23-09-12-A5b-k=10-losses.png}    
+        \end{center}    
+        And these are 10 of the centroids identified by k-means, visualized as $28\times 28 matrices$: 
+        \begin{center}
+            \includegraphics*[width=14cm]{A5bplots/23-09-12-A5b-k=10-centroids.png}
+        \end{center}
     \subsection*{A5.c}
+        For this part, I traied the model with values of $k\in \{2, 4, 8, 16, 32, 64\}$ on the whole normalized training MNIST dataset, and the value of the loss function after the algorithm converged are plot against each value of $k$, and this is the graph: 
+        \\
+        Code \hyperref[A5.a]{A5.a}
+        \begin{center}
+            \includegraphics*[width=12cm]{A5bplots/22-04-21-A5b-k-vs-loss.png}
+        \end{center}
+    
+        
         
 \section*{ML in the Real World}
 
