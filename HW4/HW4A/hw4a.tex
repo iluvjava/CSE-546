@@ -126,14 +126,14 @@
         \subsubsection*{A2.0: Preliminaries}
             Let's denote the set of $\{g: f(y) \ge  f(x) + g^T(y - x)\}$ to be $\partial[f]$, which is really a compact set in the Euclidean space. In the case of vector is going to be a cone. 
             \\[1.1em]
-            From the problem statement we gather: $\exists i \in [m]: f(x) =f_i(x)\implies \partial[f_i]\subseteq \partial[f]$. Now, if we make the deliberate choisce on $i$ for a given particular $x$, we can make the claim that: 
+            From the problem statement we gather: $\exists i \in [m]: f(x) =f_i(x)\implies \partial[f_i]\subseteq \partial[f]$. Now, if we make the deliberate choice on $i$ for a given particular $x$, we can make the claim that:
             \begin{align*}\tag{A2.0.1}\label{eqn:A2.0.1}
                 \partial[f]= \left(
-                    \inf_{i\in[m]} \lbrace\partial[f_i]\rbrace, 
-                    \sup_{i\in[m]} \lbrace\partial[f_i]\rbrace
+                    \inf \lbrace \partial[f_i(x)]: f_i(x) = f(x)\rbrace, 
+                    \sup \lbrace \partial[f_i(x)]: f_i(x) = f(x)\rbrace
                 \right)
             \end{align*}
-            Basically, we can choose the $i$ such to find a lower and upper bound for the sub gradient of $f$, a function defined via: $f(x)=\max_i\{f_i(x)\}$. 
+            Basically, we can choose the $i$ such to find a lower and upper bound for the sub gradient of $f$ if $f_i(x) = f(x)$. 
             \\[1.1em]
             And when we consider the sum of a lot of convex functions $\sum_{i = 1}^{n}f_i(x)$, then:
             \begin{align*}\tag{A2.0.2}\label{eqn:A2.0.2}
@@ -206,11 +206,11 @@
             \begin{align*}\tag{A2.b.b.2}\label{eqn:A2.b.b.2}
                 (\partial[f](x))_j = \left(
                     \inf\left\lbrace
-                        (\nabla[f_i](x))_j
-                    \right\rbrace_{i = 1}^m ,  
+                        (\nabla[f_i](x))_j: f_i(x) = f(x)
+                    \right\rbrace ,  
                     \sup\left\lbrace
-                        (\nabla[f_i](x))_j
-                    \right\rbrace_{i=1}^m
+                        (\nabla[f_i](x))_j: f_i(x) = f(x)
+                    \right\rbrace
                 \right)
             \end{align*}
             \textbf{Note}: The notation of $(\bullet)_j$ is denoting the $j$ th element of a vector, in this case, we are saying that the $j$ th element of the sub gradient vector for $f$ is bounded by the sup and inf of the $j$ th element of the gradient of the smooth function $f_i$. 
@@ -794,8 +794,33 @@ if __name__ == "__main__":
     
         
         
-\section*{ML in the Real World}
+\section*{A6: ML in the Real World}
+    \subsection*{A6.a: Disease Susceptibility Predictor}
+        Assuming all the data are collected correctly and filled in and ``None'', ``Nan'' are not in the dataset. 
+        \\[1.1em]
+        We are going to use the lasso regression to look for the best predictors for the system. More specifically we are look for the shrinkage of difference factors to determine the most relavent factors that cause the disease. 
+        \\[1.1em]
+        During this stage of development, ask experts about the identified factors, and then improve models like, group lasso, or lasso ridge method etc to get more alternatives the most important group of identifiers. 
+        \\[1.1em]
+        After the most relavent factors are identified, we will only use those predictor and then Logistic Regression, or Neural Networks, or whatever binary classifier models that get's the best test accuracy. 
+    \subsection*{A6.b: Social Media App Facial Recognition Technology}
+        I will look for a pretrained YOLO V3 network, this model can frame the item in the image with a label. And it's fast. A homebrew Neural CNN can do the job, but it's really slow, and it might not work as well since it's just a classifier and can't really identify the objects with its position in the photo (The bounding box with labels). If we were going to make our own neural network, then we will have to make the output of the classifier corresponds to different region of the image, and each region should output a label. And the loss function will have to be tailored for this usage, and we will be consider using the Residual Network for dimensionality reduction in this case.  
+        \\[1.1em]
+        Since that data is only comming from employees and their families, we might need to augment the dataset with a monochrome filters, this is an attempt to avoid biases created by the limited dataset. 
+        \\[1.1em]
+        Let's hope on of the ways can work out. 
+    \subsection*{A6.c: Malware Detection}
+        For binary executable file, I will consider the usage of deep Recurrent Neural Network. However, it's possible that we have executable source code (because the question says: ``\textbf{Including its contents}''), such as javascript or python script, so it's preferable to train a model for the file content for each of these above cases. 
+        \\[1.1em]
+        For binary file, we would need to decode it to assembly, and then train the data on Deep Recurrent Neural net, with classification loss function. The model is non-parametric so it's easy to scale. It has the challenge of vanishing and exploding gradient. 
+        \\[1.1em]
+        If, the above RNN doesn't work well, we are considering using BERT model as a classifier as the alternative, training on the Assembly code of course. 
+        \\[1.1em]
+        For source code, we will need to parse it into graph that keep track of all the variable flows (Decide on all the branhches the code and take and how it changes the dictionary of variables.), which should get pass obfuscated code. And then, we exract out all the API calls for the JS scripting languages, like system call, file IOs, network connection, etc. Then, we represent those elements as cannonical vectors, they are like the keywords we are interested in. Then, one vector represents a computer program. And then we are using these vector to train a Neural Net classifier. 
+        \\[1.1em]
+        For meta data, we just include it together as an arrtibute for the computer program. If it's the binary content, then we encode that as part of the Assembly sequence. If it's source code, then we add those in as a vector as well. Both are non-parametric and accurate predictor and it should scale well. 
 
+    
 
 \section*{Appendix}
     \subsection*{Extra A4Plots}
