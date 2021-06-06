@@ -1,0 +1,7 @@
+1 EigenValue 5.116787728342072
+2 EigenValue 3.74132847886477
+10 EigenValue 1.2427293764173106
+30 EigenValue 0.36425572027888686
+50 EigenValue 0.1697084270067159
+The sum of all eigen values for the COVAR matrix is:
+52.72503549512752
