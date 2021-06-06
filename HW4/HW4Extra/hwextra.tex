@@ -1,0 +1,118 @@
+\documentclass[]{article}
+\usepackage{amsmath}\usepackage{amsfonts}
+\usepackage[margin=1in,footskip=0.25in]{geometry}
+\usepackage{mathtools}
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,
+    urlcolor=cyan,
+}
+\usepackage[final]{graphicx}
+\usepackage{listings}
+\usepackage{courier}
+\lstset{basicstyle=\footnotesize\ttfamily,breaklines=true}
+
+% \usepackage{wrapfig}
+\graphicspath{{.}}
+
+\begin{document}
+\begin{center}
+    Name: Hongda Li \quad Class 546 SPRING 2021 \quad HW4 Extra
+\end{center}
+\section*{A2.b.(a)}
+    \begin{align*}\tag{a2.b.a.1}\label{eqn:a2.b.a.1}
+        & \partial\left[\sum_{i = 1}^{n} |x_i|\right] 
+        \\
+        &= \sum_{i = 1}^{n} \partial[|x_i|]
+        \\
+        &= \sum_{i = 1}^{n} g_i\mathbf{e}_i 
+    \end{align*}
+    $g_i$ is essentially: 
+    \begin{align*}\tag{a2.b.a.2}\label{eqn:a2.b.a.2}
+        g_i \in \partial[|x_i|] = \begin{cases}
+            \{1\} & x_i \ge 1
+            \\
+            [-1, 1] & x_i = 0
+            \\
+            \{-1\} & x_i \le 0
+        \end{cases}                
+    \end{align*}
+    And using the hint from the next part, the sub gradient of $\Vert x\Vert_1$ is the convex combinations of all $g_i\mathbf{e}_i$: 
+    \begin{align*}\tag{a2.b.a.3}\label{eqn:a2.b.a.3}
+        \sum_{i = 1}^{n}\lambda_i g_i\mathbf{e}_i \in \partial[\Vert x\Vert_1] \quad 
+        \sum_{i=1}^{n}\lambda_i \le 1 \wedge \lambda_i \ge 0
+    \end{align*}
+    And the span of all sub gradient for each $|x_i|$ will make up the set of sub-gradient for the original function, and hence, let $v_j$ be the $j$ th element of the sub gradient of $\Vert x\Vert_1$, the closed form will be: 
+    \begin{align*}\tag{A2.b.1.3}\label{eqn:A2.b.1.3}
+        v_j \in \begin{cases}
+            \{1\} & x_j > 0 
+            \\
+            [-1 ,1] & x_j = 0
+            \\
+            \{-1\} & x_j \le 0
+        \end{cases}
+    \end{align*}
+\section*{A2.b.(b)}
+    Let $\lambda_i$ be the set of coefficients for a convex combinations, meaning that $\sum_{i = 1}^{n} \lambda_i = 1$ and $\lambda_i \ge 0$, implying that $\lambda_i \in (0, 1)$. Using this fact and the definition of $f(x):= \max\{f_i(x)\}_i^{m}$, consider the following:
+    \begin{align*}\tag{A2.b.b.1}\label{eqn:A2.b.b.1}
+        f(y) &\ge f_i(y) \quad \forall\; i
+        \\
+        \lambda_i f(y) &\ge \lambda_i f_i(y) \quad\forall\; i
+        \\
+        \sum_{i = 1}^{m}\lambda_i f(y) &\ge 
+        \sum_{i = 1}^{m}\lambda_i f_i(y) 
+        \\
+        \underset{(1)}{\implies} f(y) &\ge \sum_{i = 1}^{m}\lambda_i f_i(y)
+        \\
+        f(y) &\ge \left(
+            \underbrace{\sum_{i = 1}^{m}\lambda_i f_i(x)}_{\le f(x)}
+        \right) + \lambda_i \nabla[f_i](x)^T(y - x)
+        \\
+        \underset{(2)}{\implies} f(y) &\ge f(x) + \lambda_i \nabla[f_i](x)^T(y - x) \quad \forall \; i
+    \end{align*}
+    \begin{enumerate}
+        \item[(1)]: True because the convex combinations coefficients $\sum_{i =1}^m \lambda_i = 1$ and $f(y)$ is independent of the summation. 
+        \item[(2)]: True because the $\sum_{i = 1}^{m}\lambda_i f_i(x) \le f(x)$ is already proven in (1).  
+    \end{enumerate}
+    Now, we are free to choose $\lambda_i$ to find the bound of the all the convex combinations of the sub gradient on $f_i$ at $x$. Therefore, the sub-gradient is the set defined as the following: 
+    \begin{align*}\tag{A2.b.b.2}\label{eqn:A2.b.b.2}
+        (\partial[f](x))_j = \left(
+            \inf\left\lbrace
+                (\nabla[f_i](x))_j: f_i(x) = f(x)
+            \right\rbrace ,  
+            \sup\left\lbrace
+                (\nabla[f_i](x))_j: f_i(x) = f(x)
+            \right\rbrace
+        \right)
+    \end{align*}
+    \textbf{Note}: The notation of $(\bullet)_j$ is denoting the $j$ th element of a vector, in this case, we are saying that the $j$ th element of the sub gradient vector for $f$ is bounded by the sup and inf of the $j$ th element of the gradient of the smooth function $f_i$. 
+\section*{A2.c}
+    In this case $f_i(x) = |x_i - (1 + \eta/i)|$ hence we can say $v_i$ is a subgradient of $f_i$ if:
+    \begin{align*}\tag{A2.c.1}\label{eqn:A2.c.1}
+        v_i \in \partial[|x_i - (1 + \eta/i)|] = \begin{cases}
+            \{1\} & x > 1 + \frac{\eta}{i} 
+            \\
+            [-1, 1] & x_i = 1 + \frac{\eta}{i}
+            \\
+            \{-1\} & x_i < 1 + \frac{\eta}{i}
+        \end{cases}
+        \\
+        \implies \forall x\in \text{dom}(f), i\in [n]: \quad
+        -1 \le v_i \le 1
+        \\
+        \implies \Vert v_i\mathbf{e_i}\Vert_\infty \le 1
+    \end{align*}
+    Therefore, we know that the convex combinations will be bounded too and it's like: 
+    \begin{align*}\tag{A2.c.2}\label{eqn:A2.c.2}
+        \forall \lambda_i \ge 0 \wedge \sum_{i = 1}^{n}\lambda_i \le 1:
+        \quad 
+        \left\Vert 
+            \underbrace{\sum_{i = 1}^{n}\lambda_iv_i\mathbf{e}_i}_{\in \partial[f]} 
+        \right\Vert_\infty \in [0, 1]
+    \end{align*}
+    Therefore, the infinity norm of the sub gradient of the function $f$ is in the set interval $[0, 1]$\footnote{The infinity norm has only positive part, so it's less than one in the end}. 
+
+
+\end{document}

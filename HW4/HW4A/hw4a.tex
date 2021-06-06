@@ -236,17 +236,329 @@
             \quad 
             \left\Vert 
                 \underbrace{\sum_{i = 1}^{n}\lambda_iv_i\mathbf{e}_i}_{\in \partial[f]} 
-            \right\Vert \in [-1, 1]
+            \right\Vert_\infty \in [0, 1]
         \end{align*}
-        Therefore, the infinity norm of the sub gradient of the function $f$ is in the set interval $[-1, 1]$. 
+        Therefore, the infinity norm of the sub gradient of the function $f$ is in the set interval $[0, 1]$\footnote{The infinity norm has only positive part, so it's less than one in the end}. 
             
 \section*{A3: PCA}
     \subsection*{A3.a}
+        This is the data: 
+        \begin{lstlisting}
+1 EigenValue 5.116787728342072
+2 EigenValue 3.74132847886477
+10 EigenValue 1.2427293764173106
+30 EigenValue 0.36425572027888686
+50 EigenValue 0.1697084270067159
+The sum of all eigen values for the COVAR matrix is:
+52.72503549512752            
+        \end{lstlisting}
+        
     \subsection*{A3.b}
+        \textbf{Objective}: Given the Eigenvalue Decomposition of the matrix Coveriance matrix of the sample, and the standardized data matrix, we are interested in reconstructing some samples using the eigenvalue of the covariance matrix. Before we start, I would like to change the notations a bit. 
+        \begin{enumerate}
+            \item[1.] For notation, let's denote the covariance matrix using $C$ instead of $\Sigma$ as in the original problem statement. 
+            \item[2.] Then, let $C = M\Lambda M^T$ be the eigen value decomposition. 
+            \item[3.] Let the singular value decomposition of the zero mean matrix to be $X_\text{train} - \mathbf{1}\mu^T$ to be $U\Sigma V^T$ 
+        \end{enumerate}
+        By definiiton of the covariance matrix we have:
+        \begin{align*}\tag{A3.b.1}\label{eqn:A3.b.1}
+            nC &= (X_\text{train} - \mathbf{1}\mu^T)^T(X_\text{train} - \mathbf{1}\mu^T)
+            \\
+            &= (U\Sigma V^T)^T(U\Sigma V^T)
+            \\
+            &= (V\Sigma U^T)(U\Sigma V^T)
+            \\
+            &= V\Sigma^2V^T = M(n\Lambda) M^T
+        \end{align*}
+        In this case, $V$ is an ortho-normal matrix. Therefore, $\Sigma^2/n$ will be equal to $\Lambda$. Which means that, given $\lambda_i$ as the eigen value for the Covariance matrix, $\sigma_i = \sqrt{n\lambda_i}$. 
+        \\[1.1em]
+        The important thing is that, columns of $V$ spans the row space of matrix $X_\text{train} - \mathbf{1}\mu$, it has all the Principal Components for rows of the matrix $X_\text{train} - \mathbf{1}\mu$. Therefore, given any offset vector we can project onto the matrix $V$: 
+        \begin{align*}\tag{A3.b.2}\label{eqn:A3.b.2}
+            \tilde{x} - \mu &= VV^T(x - \mu)
+            \\
+            \tilde{x} &= MM^T(x - \mu) + \mu
+        \end{align*}
+        In the case when a row data matrix is given we have: 
+        \begin{align*}\tag{A3.b.3}\label{eqn:A3.b.3}
+            \tilde{X}^T  - \mu\mathbf{1}^T &=  VV^T(X^T- \mu\mathbf{1}^T) + \mathbf{1}\mu^T
+            \\
+            \tilde{X}^T &= MM^T(X^T - \mu\mathbf{1}^T) + \mu\mathbf{1}^T
+            \\
+            \tilde{X} &=  (MM^T(X^T - \mu\mathbf{1}^T) + \mathbf{1}\mu^T)^T + \mathbf{1}\mu^T
+        \end{align*}
+        Why projecting onto principal components $V$? Because: 
+        \begin{align*}\tag{A3.b.4}\label{eqn:A3.b.4}
+            V = \underset{W^TW = I}{\text{argmin}}\left(
+                \left\Vert
+                    (X_\text{train} - \mathbf{1}\mu)^T - WW^T(X_\text{train} - \mathbf{1}\mu)^T
+                \right\Vert_2^2
+            \right)
+        \end{align*}
+        The singular value decomposition matrix $V$ as it's defined in this case, it's also the orthogonal subspace that minimizes the error of representing all the training data (Samples are rows of $X_\text{train}$ in this case). 
     \subsection*{A3.c}
-    \subsection*{A3.d}
-    \subsection*{A3.e}
+        \begin{center}
+            \includegraphics*[width=12cm]{A3plots/01-22-47-PCA-restruct-MSE.png}
+        \end{center}
+        \begin{center}
+            \includegraphics*[width=12cm]{A3plots/22-18-12-PCA-restruct-Energy.png}
+        \end{center}
 
+    \subsection*{A3.d}
+        The 10 top ranking principal conponents are visualized: 
+        \begin{center}
+            \includegraphics*[]{A3plots/22-18-12-top10-principal-modes.png}
+        \end{center}
+        From top to bottom, from left to right, modes are in decreasing order. 
+        \\[1.1em]
+        Each of the eigen vector of the Covariance matrix captured the pixels that exaplained most of the variance on the data set, in a manner that is, orthogonal to the subspace spanned by all previous principal mode. That is why the first principal mode looks like a zero, and then all the principle mode after it has bright spot that is non-overlapping to the previous mode (Due to the orthogonality constraint). 
+    \subsection*{A3.e}
+        \begin{center}
+            \includegraphics*[width=12cm]{A3plots/22-18-13-pca-reconstruction.png}
+        \end{center}
+        The approximation of the image by the principle modes is improved as more principle modes are used. To get a recognizable reconstruction of the original image, at least 40 modes should be used, which explains over 80\% of the total variance. 
+    \subsection*{A3.code}
+        This is the code. 
+        \\[1.1em]
+        File name: ``mnist\_pca.py'' 
+        \begin{lstlisting}[language=python]
+# This is for HW4 A3
+# Course: CSE 546, SPRING 2021
+# Name: Hongda Li
+# My code has my tyle in it please don't copy.
+
+import numpy as np
+import scipy
+from scipy import linalg
+from torchvision import datasets
+from mnist import MNIST
+import matplotlib.pyplot as plt
+from tqdm import tqdm
+zeros = np.zeros
+randint = np.random.randint
+randn = np.random.randn
+eigh = linalg.eigh
+norm = np.linalg.norm
+cumsum = np.cumsum
+
+
+
+if "MNIST_DATA" not in dir(): # running on interactive console will be faster
+    datasets.MNIST('./data', download=True, train=True)
+    MNIST_DATA = MNIST("./data/MNIST/raw/")
+    TRAIN_X, _= MNIST_DATA.load_training()
+    TEST_X, _ = MNIST_DATA.load_testing()
+    TRAIN_X= np.array(TRAIN_X, dtype=np.float)/255
+    TEST_X = np.array(TEST_X, dtype=np.float)/255
+    TRAIN_Y = np.array(MNIST_DATA.train_labels)
+    print("Mnist Dataset is ready.")
+
+# ========================== List of Helper Functions ==========================
+
+def Ts():
+    from datetime import datetime
+    SysTime = datetime.now()
+    TimeStamp = SysTime.strftime("%H-%M-%S")
+    return TimeStamp
+
+
+def mkdir(dir):
+    from pathlib import Path
+    Path(dir).mkdir(parents=True, exist_ok=True)
+
+
+def log(fname:str, content:str, dir):
+    mkdir(dir)
+    TimeStamp = Ts()
+    with open(f"{dir}{TimeStamp}-{fname}.txt","w+") as f:
+        f.write(content)
+
+# ==============================================================================
+
+
+class SVDEmbedding:
+
+    def __init__(this, X):
+        assert type(X) is np.ndarray
+        assert X.ndim == 2
+        Mu = np.mean(X, axis=0, keepdims=True)
+        StdX = (X - Mu)
+        n, d = X.shape
+        EigenValues, V = eigh((StdX.T@StdX)/n)
+        this._V = V[:, ::-1]                 # reverse the order a bit
+        this.n = n
+        this.d = d
+        this._EigenValues = EigenValues[::-1]
+        this._Mu = Mu
+
+    @property
+    def V(this):
+        return this._V.copy()
+
+    @property
+    def EigenValues(this):
+        return this._EigenValues.copy()
+
+    def Reconstruct(this, X:np.ndarray, k:int):
+        assert X.ndim == 2
+        assert X.shape[1] == this.d
+        assert k <= this.d
+        V = this._V[:, :k]
+        return (V @ V.T @ (X.T - this._Mu)).T + this._Mu
+
+
+    def ReconstructLoss(this, X, k:int):
+        return norm(X - this.Reconstruct(X, k), "fro")**2/X.shape[0]
+
+    def GetAnalysisFor(this, X, k, loss:bool=True):
+        """
+            Given a list of numbers denoting the set of: number of eigenvalues
+            we want to use to reconstruct this data matrix, this will return a
+            map mapping the number of eigenvalues, the reconstructed row data
+            matrix, and the loss on the row data matrix.
+        :param X:
+        :param k:
+        :param loss:
+            Where you want the lossm or you want the
+        :return:
+        """
+        assert np.sum(np.array(k) <= this.d)
+        Reconstructed = zeros(X.shape)
+        Res = []
+        for II in tqdm(range(0, np.max(k))):
+            Reconstructed[:, :] += \
+                (this._V[:, II:II + 1] @ this._V[:, II:II + 1].T @ (X - this._Mu).T).T
+            if II + 1 in k:
+                Loss =  norm((X - this._Mu) - Reconstructed, "fro")**2/X.shape[0]
+                Res.append((II + 1, Loss if loss else Reconstructed.copy()))
+        return Res
+
+
+def main():
+    OutFolder = "./A3out"
+    mkdir(OutFolder)
+    Instance = SVDEmbedding(TRAIN_X)
+
+    def A3a():
+        # print out specific eigen values
+        with open(f"{OutFolder}/{Ts()}-A3a-eigenvalue-sum.txt", "w+") as f:
+            for II in [1, 2, 10, 30, 50]:
+                f.write(f"{II} EigenValue {Instance.EigenValues[II - 1]}\n")
+            f.write("The sum of all eigen values for the COVAR matrix is:\n")
+            f.write(f"{np.sum(Instance.EigenValues)}\n")
+    # A3a()
+
+    def A3c():
+        def PlotReconstructionError(X):
+            Analysis = Instance.GetAnalysisFor(X, k=list(range(1, 101)))
+            Ks = [Item[0] for Item in Analysis]
+            MSELoss = [Item[1] for Item in Analysis]
+            plt.plot(Ks, MSELoss)
+        print("Getting Reconstruction graph for Train set")
+        PlotReconstructionError(TRAIN_X)
+        print("Getting Reconstruction graph for Test set")
+        PlotReconstructionError(TEST_X)
+        plt.legend(["Train Loss", "Test Loss"])
+        plt.title("PCA Reconstruction MSE vs Number of Principle Modes")
+        plt.savefig(f"{OutFolder}/{Ts()}-PCA-restruct-MSE.png")
+        plt.show()
+        # Accumuated Eigenvalues
+        plt.plot(list(range(1, 101)), 1 - cumsum(Instance.EigenValues[:100])
+                    / np.sum(Instance.EigenValues[:100]))
+        plt.title("Eigenvalue Culmulative Energy")
+        plt.xlabel("Sum of the first k eigenvalues")
+        plt.ylabel("1 - Portion of used Eigenvalues")
+        plt.savefig(f"{OutFolder}/{Ts()}-PCA-restruct-Energy.png")
+        plt.show()
+        plt.cla()
+
+    A3c()
+
+    def A3d():
+        ToPlot = zeros((28*2, 28*5))
+        for II in range(10):
+            X = (II%5)*28
+            Y = (II//5)*28
+            V = Instance.V[:, II].reshape(28, 28)
+            ToPlot[Y: Y + 28, X: X + 28] = V
+
+        fig = plt.figure()
+        ax = fig.add_subplot(111)
+        cax = ax.matshow(ToPlot)
+        fig.colorbar(cax)
+        plt.title("Top 10 Principal Components")
+        plt.savefig(f"{OutFolder}/{Ts()}-top10-principal-modes.png")
+        plt.show()
+
+    A3d()
+
+    def A3e():
+        from random import randint
+        def RandomChooseDigits():
+            Chosen = []
+            for II in [2, 6, 7]:
+                Indices = np.argwhere(TRAIN_Y == II).reshape(-1)
+                Chosen.append(Indices[randint(0, len(Indices))])
+            return Chosen
+        ChosenDigits = RandomChooseDigits()
+        Analysis = Instance.GetAnalysisFor\
+        (
+            TRAIN_X[ChosenDigits],
+            loss=False,
+            k=[5, 15, 40, 100]
+        )
+        ToPlot = zeros((3 * 28, 5 * 28))
+        for II in range(3):
+            Original = TRAIN_X[ChosenDigits[II]]
+            Original = Original.reshape((28, 28))
+            ToPlot[II*28:(II + 1)*28, :28] = Original
+            for JJ, (k, X) in enumerate(Analysis):
+                Reconstructed = X[II].reshape((28, 28))
+                ToPlot[II*28: (II + 1)*28, (JJ + 1)*28: (JJ + 2)*28] = \
+                    Reconstructed
+        plt.matshow(ToPlot)
+        plt.title("Reconstruction on train with k = [5, 15, 40, 100]")
+        plt.savefig(f"{OutFolder}/{Ts()}-pca-reconstruction.png")
+        plt.show()
+    A3e()
+
+    def A4d():
+        from random import randint
+        def RandomChooseDigits():
+            Chosen = []
+            for II in [2, 6, 7]:
+                Indices = np.argwhere(TRAIN_Y == II).reshape(-1)
+                Chosen.append(Indices[randint(0, len(Indices))])
+            return Chosen
+
+        ChosenDigits = RandomChooseDigits()
+        Analysis = Instance.GetAnalysisFor \
+                (
+                TRAIN_X[ChosenDigits],
+                loss=False,
+                k=[32, 64, 128]
+            )
+        ToPlot = zeros((3 * 28, 4 * 28))
+        for II in range(3):
+            Original = TRAIN_X[ChosenDigits[II]]
+            Original = Original.reshape((28, 28))
+            ToPlot[II * 28:(II + 1) * 28, :28] = Original
+            for JJ, (k, X) in enumerate(Analysis):
+                Reconstructed = X[II].reshape((28, 28))
+                ToPlot[II * 28: (II + 1) * 28, (JJ + 1) * 28: (JJ + 2) * 28] = \
+                    Reconstructed
+        plt.matshow(ToPlot)
+        plt.title("Reconstruction on train with k = [32, 64, 128]")
+        plt.savefig(f"{OutFolder}/{Ts()}-pca-reconstruction.png")
+        plt.show()
+    A4d()
+
+
+if __name__ == "__main__":
+    import os
+    print(os.getcwd())
+    print(os.curdir)
+    main()
+        \end{lstlisting}
 \section*{A4: Unsupervised Learning with Autoencoders}
     \subsection*{A4.a}
         The Train Error for $h\in\{32, 64, 128\}$ for the linear models are: 
@@ -290,7 +602,6 @@
         \begin{center}
             \includegraphics*[width=12cm]{A4plots/06-43-19-h-64-lin-digit-9.png}
         \end{center}
-        
     \subsection*{A4.b}
         The train error for $h\in\{32, 64, 128\}$ for the non-linear model with ReLU activation is: 
         \begin{enumerate}
@@ -331,7 +642,15 @@
         \end{center}
         
     \subsection*{A4.c}
+        For linear model with a hidden layer of 128, Total Epochs of 30, the final  MSE loss on the test set is: 0.038117972066005104. 
+        \\[1.1em]
+        For the non linear model with a hidden layer of 128, total epochs of 30, the final MSE loss on the test set is: 0.024230041910583734. 
     \subsection*{A4.d}
+        This is the reconstructed images using the first 32, 64, 128 PCA components. 
+        \begin{center}
+            \includegraphics*[width=12cm]{A4plots/22-50-33-pca-reconstruction.png}
+        \end{center}
+        The quality of the reconstructing images using PCA components is very similar to what we have for the Linear Autoencoder. 
     \subsection*{A4.Code}\label{A4.Code}
     This is the code I used for the assignment: 
     \\
@@ -773,8 +1092,8 @@ if __name__ == "__main__":
         \\[1.1em]
         Note, here are some implementation details that might effect the average loss for each samples computed: 
         \begin{enumerate}
-            \item[$\bullet$]: I normalized the MNIST data by dividing it by 255 so all the piexles values are in $[0, 1]$. 
-            \item[$\bullet$]: It's trained on the whole MNIST train datasset.  
+            \item[1.]: I normalized the MNIST data by dividing it by 255 so all the piexles values are in $[0, 1]$. 
+            \item[2.]: It's trained on the whole MNIST train datasset.  
         \end{enumerate}
         Code: \hyperref[A5.a]{A5.a}
         \begin{center}
@@ -819,8 +1138,6 @@ if __name__ == "__main__":
         For source code, we will need to parse it into graph that keep track of all the variable flows (Decide on all the branhches the code and take and how it changes the dictionary of variables.), which should get pass obfuscated code. And then, we exract out all the API calls for the JS scripting languages, like system call, file IOs, network connection, etc. Then, we represent those elements as cannonical vectors, they are like the keywords we are interested in. Then, one vector represents a computer program. And then we are using these vector to train a Neural Net classifier. 
         \\[1.1em]
         For meta data, we just include it together as an arrtibute for the computer program. If it's the binary content, then we encode that as part of the Assembly sequence. If it's source code, then we add those in as a vector as well. Both are non-parametric and accurate predictor and it should scale well. 
-
-    
 
 \section*{Appendix}
     \subsection*{Extra A4Plots}

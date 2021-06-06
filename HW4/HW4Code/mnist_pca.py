@@ -80,7 +80,7 @@ class SVDEmbedding:
         assert X.shape[1] == this.d
         assert k <= this.d
         V = this._V[:, :k]
-        return (V @ V.T @ X.T + this._Mu).T
+        return (V @ V.T @ (X.T - this._Mu)).T + this._Mu
 
 
     def ReconstructLoss(this, X, k:int):
@@ -101,12 +101,12 @@ class SVDEmbedding:
         assert np.sum(np.array(k) <= this.d)
         Reconstructed = zeros(X.shape)
         Res = []
-        for II in tqdm(range(0, k[-1] + 1)):
+        for II in tqdm(range(0, np.max(k))):
             Reconstructed[:, :] += \
-                (this._V[:, II:II + 1] @ this._V[:, II:II + 1].T @ X.T).T
-            if II in k:
-                Loss =  norm(X - Reconstructed, "fro")**2/X.shape[0]
-                Res.append((II, Loss if loss else Reconstructed.copy()))
+                (this._V[:, II:II + 1] @ this._V[:, II:II + 1].T @ (X - this._Mu).T).T
+            if II + 1 in k:
+                Loss =  norm((X - this._Mu) - Reconstructed, "fro")**2/X.shape[0]
+                Res.append((II + 1, Loss if loss else Reconstructed.copy()))
         return Res
 
 
@@ -148,7 +148,7 @@ def main():
         plt.show()
         plt.cla()
 
-    # A3c()
+    A3c()
 
     def A3d():
         ToPlot = zeros((28*2, 28*5))
@@ -166,7 +166,7 @@ def main():
         plt.savefig(f"{OutFolder}/{Ts()}-top10-principal-modes.png")
         plt.show()
 
-    # A3d()
+    A3d()
 
     def A3e():
         from random import randint
@@ -196,7 +196,7 @@ def main():
         plt.title("Reconstruction on train with k = [5, 15, 40, 100]")
         plt.savefig(f"{OutFolder}/{Ts()}-pca-reconstruction.png")
         plt.show()
-    # A3e()
+    A3e()
 
     def A4d():
         from random import randint
