@@ -656,136 +656,43 @@ if __name__ == "__main__":
     \\
     Filename: ``mnist\_autoencoders''
         \begin{lstlisting}[language=python]
-### CLASS: CSE 546 SPRING 2021 HW4, A3
-### Name: Hongda Li
-### My code has my style in it don't copy.
-
+# This is for HW4 A3
+# Course: CSE 546, SPRING 2021
+# Name: Hongda Li
+# My code has my tyle in it please don't copy.
 
 import numpy as np
-import torch
-import torchvision
+import scipy
+from scipy import linalg
+from torchvision import datasets
+from mnist import MNIST
 import matplotlib.pyplot as plt
-from time import time
-from torchvision import datasets, transforms
-from torch import nn, optim
 from tqdm import tqdm
-import random as sysrandom
+zeros = np.zeros
+randint = np.random.randint
+randn = np.random.randn
+eigh = linalg.eigh
+norm = np.linalg.norm
+cumsum = np.cumsum
 
 
-TRANSFORM  = transforms.Compose([transforms.ToTensor(),
-                                transforms.Normalize((0.5,), (0.5,)),
-                            ])
-TRAIN_SET = \
-    datasets.MNIST('./data', download=True, train=True, transform=TRANSFORM)
-TEST_SET = \
-    datasets.MNIST('./data', download=False, train=True, transform=TRANSFORM)
 
-TRAIN_SET, TEST_SET = \
-    torch.utils.data.Subset(TRAIN_SET, range(0, 1000)), \
-    torch.utils.data.Subset(TEST_SET, range(0, 1000))
+if "MNIST_DATA" not in dir(): # running on interactive console will be faster
+    datasets.MNIST('./data', download=True, train=True)
+    MNIST_DATA = MNIST("./data/MNIST/raw/")
+    TRAIN_X, _= MNIST_DATA.load_training()
+    TEST_X, _ = MNIST_DATA.load_testing()
+    TRAIN_X= np.array(TRAIN_X, dtype=np.float)/255
+    TEST_X = np.array(TEST_X, dtype=np.float)/255
+    TRAIN_Y = np.array(MNIST_DATA.train_labels)
+    print("Mnist Dataset is ready.")
 
-DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-
-class A4Model(nn.Module):
-
-    def __init__(this, h:int, non_linear:bool=False):
-        """
-
-        :param kargs:
-            d: The dimension of the data.
-            h: The width of the hidden layer.
-            activation: TRUE, FALSE
-                Whether to use ReLU activation function on hidden and output layer.
-        """
-        super().__init__()
-        d = 28**2
-        this.L1 = nn.Linear(d, h)
-        this.L2 = nn.Linear(h, d)
-        this.NonLin = non_linear
-        this.MSE = nn.MSELoss()
-
-
-    def forward(this, X):
-        """
-            Feed Forward without Loss function capped onto the output layer.
-        :param X:
-            The data matrix, row data matrix.
-        :return:
-
-        """
-        x = this.L1(X)
-        if this.NonLin:
-            x = nn.ReLU(x)
-        x = this.L2(x)
-        if this.NonLin:
-            x = nn.ReLU(x)
-        return x
-
-    def GetEmbeding(this, X):
-
-        pass
-
-    def FeedForward(this, X):
-        return this.MSE(this(X), X)
-
-
-def MNISTTenUniqueDigitsLoader(train=True):
-    data = \
-        datasets.MNIST('./data', download=True, train=train, transform=TRANSFORM)
-    Indices = []
-    for II in range(10):
-        Idx = torch.where(data.targets == II)[0]
-        Indices.append(Idx[sysrandom.randint(0, len(Idx))])
-    Subset = torch.utils.data.Subset(data, Indices)
-    return torch.utils.data.DataLoader(Subset, batch_size=10, shuffle=False)
-
-
-def BatchThisModel(theModel:A4Model,
-                dataLoader:torch.utils.data.DataLoader,
-                optimizer:optim.Adam=None,
-                transform:callable=None):
-    """
-        Batch this model for one epoch, give me the model optimizer and some
-        extra thing, then it will collect the average loss of one epoch.
-        Note:
-        This one is for Regression Model, it assumes MSE loss, loss of each
-        batch if divided by the total number of batches from the data loader.
-    :param theModel:
-    :param dataLoader:
-    :param transform:
-    :return:
-    """
-    AvgLoss = 0; theModel.to(DEVICE)
-    L = len(dataLoader)
-    for II, (X, _) in enumerate(tqdm(dataLoader)):
-        if transform is not None: X = transform(X)
-        X= X.to(DEVICE)
-        if optimizer is None:
-            with torch.no_grad():
-                AvgLoss += float(theModel.FeedForward(X))/L
-        else:
-            optimizer.zero_grad()
-            Loss = theModel.FeedForward(X)
-            AvgLoss += Loss.item() / L
-            Loss.backward()
-            optimizer.step()
-    with torch.no_grad():
-        Loss = theModel.FeedForward(X)
-        AvgLoss += Loss.item() / L
-    return AvgLoss
-
-
-def GetTrainTestLoaders(bs=100):
-    TrainLoader = \
-        torch.utils.data.DataLoader(TRAIN_SET, batch_size=bs, shuffle=True)
-    TestLoader = \
-        torch.utils.data.DataLoader(TEST_SET, batch_size=bs, shuffle=True)
-    return TrainLoader, TestLoader
-
+# ========================== List of Helper Functions ==========================
 
 def Ts():
-    from time import gmtime, strftime
-    TimeStamp = strftime("%H-%M-%S", gmtime())
+    from datetime import datetime
+    SysTime = datetime.now()
+    TimeStamp = SysTime.strftime("%H-%M-%S")
     return TimeStamp
 
 
@@ -800,73 +707,198 @@ def log(fname:str, content:str, dir):
     with open(f"{dir}{TimeStamp}-{fname}.txt","w+") as f:
         f.write(content)
 
+# ==============================================================================
+
+
+class SVDEmbedding:
+
+    def __init__(this, X):
+        assert type(X) is np.ndarray
+        assert X.ndim == 2
+        Mu = np.mean(X, axis=0, keepdims=True)
+        StdX = (X - Mu)
+        n, d = X.shape
+        EigenValues, V = eigh((StdX.T@StdX)/n)
+        this._V = V[:, ::-1]                 # reverse the order a bit
+        this.n = n
+        this.d = d
+        this._EigenValues = EigenValues[::-1]
+        this._Mu = Mu
+
+    @property
+    def V(this):
+        return this._V.copy()
+
+    @property
+    def EigenValues(this):
+        return this._EigenValues.copy()
+
+    def Reconstruct(this, X:np.ndarray, k:int):
+        assert X.ndim == 2
+        assert X.shape[1] == this.d
+        assert k <= this.d
+        V = this._V[:, :k]
+        return (V @ V.T @ (X.T - this._Mu)).T + this._Mu
+
+
+    def ReconstructLoss(this, X, k:int):
+        return norm(X - this.Reconstruct(X, k), "fro")**2/X.shape[0]
+
+    def GetAnalysisFor(this, X, k, loss:bool=True):
+        """
+            Given a list of numbers denoting the set of: number of eigenvalues
+            we want to use to reconstruct this data matrix, this will return a
+            map mapping the number of eigenvalues, the reconstructed row data
+            matrix, and the loss on the row data matrix.
+        :param X:
+        :param k:
+        :param loss:
+            Where you want the lossm or you want the
+        :return:
+        """
+        assert np.sum(np.array(k) <= this.d)
+        Reconstructed = zeros(X.shape)
+        Res = []
+        for II in tqdm(range(0, np.max(k))):
+            Reconstructed[:, :] += \
+                (this._V[:, II:II + 1] @ this._V[:, II:II + 1].T @ (X - this._Mu).T).T
+            if II + 1 in k:
+                Loss =  norm((X - this._Mu) - Reconstructed, "fro")**2/X.shape[0]
+                Res.append((II + 1, Loss if loss else Reconstructed.copy()))
+        return Res
+
 
 def main():
-    def A4Run(NonLin, h):
-        Bs, Epochs, lr = 100, 30, 0.01
-        Losses = []
-        Model = A4Model(h=h, non_linear=False)
-        Optimizer = optim.Adam(Model.parameters(), lr=lr)
-        TrainLoader, TestsLoader = GetTrainTestLoaders(bs=Bs)
-        for Epoch in range(Epochs):
-            Loss = BatchThisModel(theModel=Model,
-                                dataLoader=TrainLoader,
-                                optimizer=Optimizer,
-                                transform=lambda x: x.reshape(Bs, -1))
-            Losses.append(Loss)
-        log(fname=f"A4-final-train-Loss-h={h}-{'Non' if NonLin else ''}lin-model",
-            content=f"Total Epochs: {Epochs} Train Final MSE Loss: {Losses[-1]}",
-            dir="./A4logs/")
-        def Visualize(Train=True):
-            mkdir("./A4plots")
-            DigitsLoader = MNISTTenUniqueDigitsLoader(Train)
-            for X, _ in DigitsLoader:
-                X = X.reshape(X.shape[0], -1)
-                Reconstructed = Model(X.to(DEVICE))
-            for II, (Row1, Row2) in enumerate(zip(Reconstructed.data, X.data)):
-                Together = torch.zeros(28, 28*2)
-                Together[:, :28] = Row1.reshape(28, 28)
-                Together[:,28:]  = Row2.reshape(28, 28)
-                plt.matshow(Together)
-                plt.title(f"h:{h}, ReLU Model: {NonLin}, left reconstructed, right Original\n"
-                f"{'Train Set' if Train else 'Test Set'}")
-                plt.savefig(f"./A4plots/{Ts()}-h-{h}-{'non' if NonLin else ''}lin-digit-{II}.png")
-                plt.show()
+    OutFolder = "./A3out"
+    mkdir(OutFolder)
+    Instance = SVDEmbedding(TRAIN_X)
 
-        Visualize()
-        if h == 128:
-            Loss = BatchThisModel(theModel=Model,
-                                dataLoader=TestsLoader,
-                                transform=lambda x: x.reshape(Bs, -1))
-            log(fname=f"A4-test-loss-h={h}-{'Non' if NonLin else ''}lin-model",
-                content=f"Total Epochs: {Epochs} Test Final MSE Loss: {Loss}",
-                dir="./A4logs/")
+    def A3a():
+        # print out specific eigen values
+        with open(f"{OutFolder}/{Ts()}-A3a-eigenvalue-sum.txt", "w+") as f:
+            for II in [1, 2, 10, 30, 50]:
+                f.write(f"{II} EigenValue {Instance.EigenValues[II - 1]}\n")
+            f.write("The sum of all eigen values for the COVAR matrix is:\n")
+            f.write(f"{np.sum(Instance.EigenValues)}\n")
+    # A3a()
 
+    def A3c():
+        def PlotReconstructionError(X):
+            Analysis = Instance.GetAnalysisFor(X, k=list(range(1, 101)))
+            Ks = [Item[0] for Item in Analysis]
+            MSELoss = [Item[1] for Item in Analysis]
+            plt.plot(Ks, MSELoss)
+        print("Getting Reconstruction graph for Train set")
+        PlotReconstructionError(TRAIN_X)
+        print("Getting Reconstruction graph for Test set")
+        PlotReconstructionError(TEST_X)
+        plt.legend(["Train Loss", "Test Loss"])
+        plt.title("PCA Reconstruction MSE vs Number of Principle Modes")
+        plt.savefig(f"{OutFolder}/{Ts()}-PCA-restruct-MSE.png")
+        plt.show()
+        # Accumuated Eigenvalues
+        plt.plot(list(range(1, 101)), 1 - cumsum(Instance.EigenValues[:100])
+                    / np.sum(Instance.EigenValues[:100]))
+        plt.title("Eigenvalue Culmulative Energy")
+        plt.xlabel("Sum of the first k eigenvalues")
+        plt.ylabel("1 - Portion of used Eigenvalues")
+        plt.savefig(f"{OutFolder}/{Ts()}-PCA-restruct-Energy.png")
+        plt.show()
+        plt.cla()
 
-        return Model, Losses
+    A3c()
 
-    A4Run(False, h=32)
-    A4Run(False, h=64)
-    A4Run(False, h=128)
-    A4Run(True, h=32)
-    A4Run(True, h=64)
-    A4Run(True, h=128)
+    def A3d():
+        ToPlot = zeros((28*2, 28*5))
+        for II in range(10):
+            X = (II%5)*28
+            Y = (II//5)*28
+            V = Instance.V[:, II].reshape(28, 28)
+            ToPlot[Y: Y + 28, X: X + 28] = V
 
+        fig = plt.figure()
+        ax = fig.add_subplot(111)
+        cax = ax.matshow(ToPlot)
+        fig.colorbar(cax)
+        plt.title("Top 10 Principal Components")
+        plt.savefig(f"{OutFolder}/{Ts()}-top10-principal-modes.png")
+        plt.show()
+
+    A3d()
+
+    def A3e():
+        from random import randint
+        def RandomChooseDigits():
+            Chosen = []
+            for II in [2, 6, 7]:
+                Indices = np.argwhere(TRAIN_Y == II).reshape(-1)
+                Chosen.append(Indices[randint(0, len(Indices))])
+            return Chosen
+        ChosenDigits = RandomChooseDigits()
+        Analysis = Instance.GetAnalysisFor\
+        (
+            TRAIN_X[ChosenDigits],
+            loss=False,
+            k=[5, 15, 40, 100]
+        )
+        ToPlot = zeros((3 * 28, 5 * 28))
+        for II in range(3):
+            Original = TRAIN_X[ChosenDigits[II]]
+            Original = Original.reshape((28, 28))
+            ToPlot[II*28:(II + 1)*28, :28] = Original
+            for JJ, (k, X) in enumerate(Analysis):
+                Reconstructed = X[II].reshape((28, 28))
+                ToPlot[II*28: (II + 1)*28, (JJ + 1)*28: (JJ + 2)*28] = \
+                    Reconstructed
+        plt.matshow(ToPlot)
+        plt.title("Reconstruction on train with k = [5, 15, 40, 100]")
+        plt.savefig(f"{OutFolder}/{Ts()}-pca-reconstruction.png")
+        plt.show()
+    A3e()
+
+    def A4d():
+        from random import randint
+        def RandomChooseDigits():
+            Chosen = []
+            for II in [2, 6, 7]:
+                Indices = np.argwhere(TRAIN_Y == II).reshape(-1)
+                Chosen.append(Indices[randint(0, len(Indices))])
+            return Chosen
+
+        ChosenDigits = RandomChooseDigits()
+        Analysis = Instance.GetAnalysisFor \
+            (
+                TRAIN_X[ChosenDigits],
+                loss=False,
+                k=[32, 64, 128]
+            )
+        ToPlot = zeros((3 * 28, 4 * 28))
+        for II in range(3):
+            Original = TRAIN_X[ChosenDigits[II]]
+            Original = Original.reshape((28, 28))
+            ToPlot[II * 28:(II + 1) * 28, :28] = Original
+            for JJ, (k, X) in enumerate(Analysis):
+                Reconstructed = X[II].reshape((28, 28))
+                ToPlot[II * 28: (II + 1) * 28, (JJ + 1) * 28: (JJ + 2) * 28] = \
+                    Reconstructed
+        plt.matshow(ToPlot)
+        plt.title("Reconstruction on train with k = [32, 64, 128]")
+        plt.savefig(f"{OutFolder}/{Ts()}-pca-reconstruction.png")
+        plt.show()
+    A4d()
 
 
 if __name__ == "__main__":
     import os
-    print(os.curdir)
     print(os.getcwd())
+    print(os.curdir)
     main()
         \end{lstlisting}
-    
-    
-\section*{A5: K-Mean Clustering}
+\section*{A5}
     \subsection*{A5.a}\label{A5.a}
-        This is the code I used for the whole $A5$, it contains my implementation of the Loyd's Kmeans algorithm using numpy. 
+        This is the code for implementing the Lloyd's Kmean's algorithm. 
         \\[1.1em]
-        filename: ``k\_mean.py''
+        File name: ``k\_mean.py''
         \begin{lstlisting}[language=python]
 ### CLASS CSE 564 SPRING 2021 HW4 A4
 ### Name: Hongda Li
@@ -931,7 +963,7 @@ class KMean:
         # this._AugX = X[:, :, np.newaxis]
         this.Assignment = {}
         this._C = np.transpose(this._X[randint(0, n, k), :][...,np.newaxis],
-                                (2, 1, 0))
+                               (2, 1, 0))
         this._ComputeAssignment()
 
     @property
@@ -950,11 +982,11 @@ class KMean:
     def TransferLearningFrom(this, other):
         this._C = other.C
         this._ComputeAssignment()
+        this.Update()
 
     def _ComputeCentroid(this):
         """
             Compute centroid using the current assignment.
-
         :return:
         """
         for Centroid, Idx in this.Assignment.items():
@@ -972,8 +1004,8 @@ class KMean:
         for CIdx in range(this._C.shape[2]):
             Centroid = this._C[..., CIdx]
             Distances[..., CIdx] = np.sum((X - Centroid)**2,
-                                            axis=1,
-                                            keepdims=True)
+                                          axis=1,
+                                          keepdims=True)
         AssignmentVec = np.argmin(Distances, axis=2).reshape(-1)
         NewAssignment = {}
         for Idx, Class in enumerate(AssignmentVec):
@@ -1014,7 +1046,7 @@ def main():
         plt.show()
         return Km
 
-    def Learn(Km:KMean, n=None):
+    def Learn(Km:KMean, n=None, maxItr=100, tol=0.1):
         Losses = []
         if n is not None:
             for _ in tqdm(range(n)):
@@ -1022,14 +1054,16 @@ def main():
                 Losses.append(Km.Loss())
         else:
             C = Km.Centroids
+            MaxItr = maxItr
             while True:
                 Km.Update()
                 Losses.append(Km.Loss())
                 Delta = np.linalg.norm(C - Km.Centroids, np.inf)
                 print(f"Delta: {Delta}")
-                if Delta < 1e-1:
+                if Delta < tol and MaxItr > 0:
                     break
                 C = Km.Centroids
+                MaxItr -= 1
         return Km, Losses
 
     def ClusterMnist(k=10,X=None):
@@ -1062,9 +1096,21 @@ def main():
         NumberOfCluster = list(map(lambda x: 2**x,range(1, 7)))
         TrainLosses, TestLosses = [], []
         for K in NumberOfCluster:
-            Km, Losses = ClusterMnist(k=K, X=TRAIN_X[:5000])
+            print(f"Investigating number of cluster: {K}")
+            Km, _ = ClusterMnist(k=K, X=TRAIN_X[:5000])
+
+            print("Transfer Learning 1 ...")
+            KmNew = KMean(k=K, X=TRAIN_X[:25000])
+            KmNew.TransferLearningFrom(Km)
+            _, _ = Learn(KmNew, tol=1)
+
+            print("Transfer Learning 2 ...")
+            KmNew2 = KMean(k=K, X=TRAIN_X)
+            KmNew2.TransferLearningFrom(KmNew)
+            _, Losses = Learn(KmNew2, tol=5)
             TrainLosses.append(Losses[-1])
-            TestLosses.append(Km.Loss(TEST_X))
+            TestLosses.append(KmNew.Loss(TEST_X))
+
         plt.plot(NumberOfCluster, TrainLosses, ".-")
         plt.plot(NumberOfCluster, TestLosses, ".-")
         plt.legend(["Losses on Train Set", "Losses on Test Set"])
@@ -1086,7 +1132,6 @@ if __name__ == "__main__":
     print(f"{os.curdir}")
     main()            
         \end{lstlisting}
-        
     \subsection*{A5.b}
         This is the error for the k mean algorithm with $k = 10$. The algorithm iterates until the maximal centroid's position doesn't change by more than $1e-2$. 
         \\[1.1em]
@@ -1108,8 +1153,9 @@ if __name__ == "__main__":
         \\
         Code \hyperref[A5.a]{A5.a}
         \begin{center}
-            \includegraphics*[width=12cm]{A5bplots/22-04-21-A5b-k-vs-loss.png}
+            \includegraphics*[width=12cm]{A5bplots/15-46-26-A5b-k-vs-loss.png}
         \end{center}
+        \textbf{Note}: I used the idea of transfer learning, where we progressively train Kmean model on sub samples of the whole training set, and then each one refines the centroids found by the previous model. 
     
         
         

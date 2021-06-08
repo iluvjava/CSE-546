@@ -168,7 +168,7 @@ def main():
             for X, _ in DigitsLoader:
                 X = X.reshape(X.shape[0], -1)
                 Reconstructed = Model(X.to(DEVICE))
-            for II, (Row1, Row2) in enumerate(zip(Reconstructed.data, X.data)):
+            for II, (Row1, Row2) in enumerate(zip(Reconstructed.DATA, X.DATA)):
                 Together = torch.zeros(28, 28*2)
                 Together[:, :28] = Row1.reshape(28, 28)
                 Together[:,28:]  = Row2.reshape(28, 28)

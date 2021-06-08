@@ -80,6 +80,7 @@ class KMean:
     def TransferLearningFrom(this, other):
         this._C = other.C
         this._ComputeAssignment()
+        this.Update()
 
     def _ComputeCentroid(this):
         """
@@ -143,7 +144,7 @@ def main():
         plt.show()
         return Km
 
-    def Learn(Km:KMean, n=None):
+    def Learn(Km:KMean, n=None, maxItr=100, tol=0.1):
         Losses = []
         if n is not None:
             for _ in tqdm(range(n)):
@@ -151,14 +152,16 @@ def main():
                 Losses.append(Km.Loss())
         else:
             C = Km.Centroids
+            MaxItr = maxItr
             while True:
                 Km.Update()
                 Losses.append(Km.Loss())
                 Delta = np.linalg.norm(C - Km.Centroids, np.inf)
                 print(f"Delta: {Delta}")
-                if Delta < 1e-1:
+                if Delta < tol and MaxItr > 0:
                     break
                 C = Km.Centroids
+                MaxItr -= 1
         return Km, Losses
 
     def ClusterMnist(k=10,X=None):
@@ -191,9 +194,21 @@ def main():
         NumberOfCluster = list(map(lambda x: 2**x,range(1, 7)))
         TrainLosses, TestLosses = [], []
         for K in NumberOfCluster:
-            Km, Losses = ClusterMnist(k=K, X=TRAIN_X[:5000])
+            print(f"Investigating number of cluster: {K}")
+            Km, _ = ClusterMnist(k=K, X=TRAIN_X[:5000])
+
+            print("Transfer Learning 1 ...")
+            KmNew = KMean(k=K, X=TRAIN_X[:25000])
+            KmNew.TransferLearningFrom(Km)
+            _, _ = Learn(KmNew, tol=1)
+
+            print("Transfer Learning 2 ...")
+            KmNew2 = KMean(k=K, X=TRAIN_X)
+            KmNew2.TransferLearningFrom(KmNew)
+            _, Losses = Learn(KmNew2, tol=5)
             TrainLosses.append(Losses[-1])
-            TestLosses.append(Km.Loss(TEST_X))
+            TestLosses.append(KmNew.Loss(TEST_X))
+
         plt.plot(NumberOfCluster, TrainLosses, ".-")
         plt.plot(NumberOfCluster, TestLosses, ".-")
         plt.legend(["Losses on Train Set", "Losses on Test Set"])

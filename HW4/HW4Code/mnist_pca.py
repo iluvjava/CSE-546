@@ -209,7 +209,7 @@ def main():
 
         ChosenDigits = RandomChooseDigits()
         Analysis = Instance.GetAnalysisFor \
-                (
+            (
                 TRAIN_X[ChosenDigits],
                 loss=False,
                 k=[32, 64, 128]

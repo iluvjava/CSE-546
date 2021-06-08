@@ -21,5 +21,107 @@
 \begin{center}
     Name: Hongda Li \quad Class: CSE 546 SPRING 2021 \quad HW4B    
 \end{center}
+\section*{B1: Matrix Completion and Recommendation System}
+    \textbf{Note}: Yi Yun Dong, a student in 546 is my collaborator for this problem. Type of collaborations: 
+    \begin{enumerate}
+        \item[1.] Me doing the math first, and thinking about the problem and then read Yiyun Dong's code to speed up the implementaitons of the algorithm. No direct copy is involved, I write my own code, but based on my understanding of the problem and Yiyun's code. 
+        \item[2.] We discussed the math together and look for mistakes in each other's argument.  
+    \end{enumerate}
+    \subsection*{B1.code}
+
+    \subsection*{B1.a}
+        Using the average of each user to predict new enries causes the MSE to just be the variance of the matrix. 
+        \begin{enumerate}
+            \item[1.] The average rating of movies are computed by: $\text{total rating of i'th movie}/\text{number of user rated that movie}$, and if that movie is not rated by any user, replace the average estimation to be the averate of all rated movies. 
+            \item[2.] Then we just use the $\epsilon(\hat{R})_\text{test}$ to compute the error. 
+        \end{enumerate}
+    \subsection*{B1.c}
+        Create the Masking matrix as the following: 
+        \begin{align*}\tag{B1.c.1}\label{eqn:B1.c.1}
+            M_{i, j} &= \begin{cases}
+                1 & (i, j, R_{i, j}) \in \text{Train}
+                \\
+                0 & \text{else} 
+            \end{cases}
+        \end{align*}
+        This matrix will mask out elements instances where given user $j$ didn't rate movie $i$. Then, we can say the following with the cost function: 
+        \begin{align*}\tag{B1.c.2}\label{eqn:B1.c.2}
+            \nabla_{u_k} \left[
+                \sum_{(i, j)\in \text{Train}}^{}
+                    (u_i^Tv_j - R_{i, j})^2
+                +
+                \lambda \sum_{i = 1}^{d}
+                    \Vert u_i\Vert_2^2
+            \right] &= \mathbf{0}
+            \\
+            \nabla_{u_k}\left[
+                \sum_{j\in \text{train}}^{}
+                    (u_k^T v_j - R_{k,j})^2
+                +
+                \lambda \Vert u_k\Vert_2^2
+            \right] &= \mathbf{0}
+            \\
+            \nabla_{u_k} \left[
+                \sum_{j = 1}^{n}
+                    (M_{k, j}u_k^Tv_j - R_{k, j})^2
+            \right] + 2\lambda u_k &= \mathbf{0}
+            \\
+            \left(
+                \sum_{j = 1}^{n}
+                    (M_{k, j}u_k^Tv_j - R_{k, j})M_{k, j}v_j
+            \right) + 2\lambda u_k 
+                &= \mathbf{0}
+            \\
+            \left(
+                \sum_{j = 1}^{n} 
+                M_{k, j}^2v_jv_j^Tu_k - M_{k, j}R_{k, j}v_j
+            \right) + \lambda u_k 
+            &= \mathbf{0}
+            \\
+            \left(
+                \sum_{j = 1}^{n} 
+                    M_{k, j}v_jv_j^T
+                + \lambda I
+            \right)u_k 
+            &= \sum_{j = 1}^{n}M_{k,j}R_{k,j}v_j
+            \\
+            u_k &= \left(
+                \sum_{j = 1}^{n} 
+                    M_{k, j}v_jv_j^T
+                + \lambda I
+            \right)^{-1}\sum_{j = 1}^{n}M_{k,j}R_{k,j}v_j
+        \end{align*}
+        And this is the closed form solution of solving for one of the vector in the matrix $U$, similarly we can get the closed form solution for one of the vector in $V$:
+        \begin{align*}\tag{B1.c.3}\label{eqn:B1.c.3}
+            \nabla_{v_k} \left[
+                \sum_{(i, j)\in \text{Train}}^{}
+                    (u_i^Tv_j - R_{i, j})^2
+                +
+                \lambda \sum_{i = 1}^{d}
+                    \Vert u_i\Vert_2^2
+            \right] &= \mathbf{0}
+            \\
+            \nabla_{v_k} \left[
+                \sum_{i = 1}^{m}(M_{i, k}u_i^Tv_k - R{i, j})^2 + \lambda \Vert v_k\Vert_2^2
+            \right] &= 0
+            \\
+            \sum_{i = 1}^{m}
+                (M_{i, k}^2u_i^Tv_ku_i - R_{i, k}M_{i, k}u_i) + \lambda v_k 
+            &= 0
+            \\
+            \sum_{i = 1}^{m}(M_{i,k}u_iu_i^Tv_k) + \lambda I v_k
+            &= \sum_{i = 1}^{m} M_{i, k}R_{i,k}u_i
+            \\
+            \left(
+                \sum_{i = 1}^{m}(M_{i,k}u_iu_i^T) + \lambda I
+            \right)v_k &= \sum_{i = 1}^{m} M_{i, k}R_{i,k}u_i
+            \\
+            v_k &= \left(
+                \sum_{i = 1}^{m}(M_{i, k}u_iu_i^T) + \lambda I
+            \right)^{-1}
+            \sum_{i = 1}^{m} R_{i, k}M_{i, k}u_i
+        \end{align*}
+        Implementing them as python code for the alternating optimization is not easy. 
+    
 
 \end{document}
