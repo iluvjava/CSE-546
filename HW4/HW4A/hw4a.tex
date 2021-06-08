@@ -40,7 +40,7 @@
     \subsection*{A1.d}
         False. Singular values Decomposition has $U, V$ that are the eigenvectors for $XX^T$ and $X^TX$, eigen values decomposition is not unque because you can multiply eigenvector by negative one (or even worse by the complex unit $\exp(i\theta)$) to get another normalized eigen vector that still works. In the case of SVD remember to flip the $u, v$ vector corssponds to the same singular value together to get different decomposition for the same matrix. 
     \subsection*{A1.e}
-        False when the matrix is degenerate. In this case a eigenvalue can have a geometric multiplicity higher than it's algebaric multiplicity, then the rank of the matrix will be more than the number of eigenvalues it has. 
+        False when the matrix is degenerate. In this case an eigenvalue having a algebraic multiplicity higher than it's geometric multiplicity, then the rank of the matrix will be more than the number of eigenvalues it has. 
     \subsection*{A1.f}
         True, becaues Autoencoders with non-linear activation function can incooperate non-linear representation of data in the lower dimension. 
         
@@ -117,7 +117,7 @@
             \begin{align*}\tag{A2.a.b.2}\label{eqn:A2.a.b.2}
                 \Vert Ux\Vert_2^2 &= (Ux)^T(Ux)
                 \\
-                x^TUUx &= x^Tx
+                x^TU^TUx &= x^Tx
                 \\
                 &= \Vert x\Vert_2^2
             \end{align*}

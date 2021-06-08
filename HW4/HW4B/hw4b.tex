@@ -27,14 +27,22 @@
         \item[1.] Me doing the math first, and thinking about the problem and then read Yiyun Dong's code to speed up the implementaitons of the algorithm. No direct copy is involved, I write my own code, but based on my understanding of the problem and Yiyun's code. 
         \item[2.] We discussed the math together and look for mistakes in each other's argument.  
     \end{enumerate}
-    \subsection*{B1.code}
 
     \subsection*{B1.a}
         Using the average of each user to predict new enries causes the MSE to just be the variance of the matrix. 
         \begin{enumerate}
-            \item[1.] The average rating of movies are computed by: $\text{total rating of i'th movie}/\text{number of user rated that movie}$, and if that movie is not rated by any user, replace the average estimation to be the averate of all rated movies. 
+            \item[1.] The average rating of movies are computed by: $\frac{\text{total rating of i'th movie}}{\text{number of user rated that movie}}$, and if that movie is not rated by any user, replace the average estimation to be the averate of all rated movies. 
             \item[2.] Then we just use the $\epsilon(\hat{R})_\text{test}$ to compute the error. 
         \end{enumerate}
+        The error I have at the end for $\epsilon(\hat{R})_\text{Test}$ is: $1.0551305913743587$. 
+        Refer to my code in section \hyperref[B1.code]{B1.code}
+    \subsection*{B1.b}
+        This is the graph I have. 
+        \begin{center}
+            \includegraphics*[width=12cm]{16-13-38-b1-b.png}
+        \end{center} 
+        Refer to my code in section \hyperref[B1.code]{B1.code}
+
     \subsection*{B1.c}
         Create the Masking matrix as the following: 
         \begin{align*}\tag{B1.c.1}\label{eqn:B1.c.1}
@@ -44,6 +52,8 @@
                 0 & \text{else} 
             \end{cases}
         \end{align*}
+        Here we also assume that $u_i, v_i \in \mathbb{R}^d$
+        \\[1.1em]
         This matrix will mask out elements instances where given user $j$ didn't rate movie $i$. Then, we can say the following with the cost function: 
         \begin{align*}\tag{B1.c.2}\label{eqn:B1.c.2}
             \nabla_{u_k} \left[
@@ -121,7 +131,244 @@
             \right)^{-1}
             \sum_{i = 1}^{m} R_{i, k}M_{i, k}u_i
         \end{align*}
-        Implementing them as python code for the alternating optimization is not easy. 
+        Implementing them as python code for the alternating optimization is not easy, and I think I did it. And this is the plot I have: 
+        \begin{center}
+            \includegraphics*[]{22-42-27-b1-c.png}
+        \end{center}
+        As we can seem it didn't generalize too well, but it seems like it works well for the training set. This is very interesting. 
+    \subsection*{B1.d}
+        Nope I didn't do it. Maybe I will do it in the future, after the class ends, as a legit resume project or something... You know.. something like that 
+    \subsection*{B1.e}
+        Bleh... 
+    \subsection*{B1.code}\label{B1.code}
+        file: ``matrix\_completion.py''
+        \begin{lstlisting}[language=python]
+import torch
+import torch.nn as nn
+import numpy as np
+from scipy import sparse
+from scipy.sparse.linalg import svds
+import matplotlib.pyplot as plt
+from math import isnan
+import csv
+zeros = np.zeros
+pinv = np.linalg.pinv
+DATA_PATH = "./data/ml-100k/u.data"
+
+
+
+def MoiveAvgRating(sparseDataMatrix:sparse.coo_matrix):
+    DenseMatrix = sparseDataMatrix.toarray().astype(np.float)
+    # number of rated movie
+    RatedMovies = np.sum(np.array(DenseMatrix != 0, dtype=np.float),
+                         axis=1, keepdims=True)
+    TotalRatings = np.sum(DenseMatrix, axis=1, keepdims=True)
+    AverageRatings = TotalRatings /RatedMovies  # average rating for each movie
+    GlobalAvg = np.sum(TotalRatings.reshape(-1))/np.sum(RatedMovies.reshape(-1))
+    # take care of movie nobody viewed.
+    return np.nan_to_num(AverageRatings, nan=GlobalAvg)
+
+
+if "DATA" not in dir():
+    DATA = []
+    with open(DATA_PATH) as csvfile:
+        spamreader = csv.reader(csvfile, delimiter='\t')
+        for row in spamreader:
+            DATA.append([int(row[0]) - 1, int(row[1]) - 1, int(row[2])])
+    DATA = np.array(DATA)
+    NUM_OBSERVATIONS = len(DATA)           # num_observations = 100,000
+    NUM_USERS = max(DATA[:, 0]) + 1        # num_users = 943, indexed 0,...,942
+    NUM_ITEMS = max(DATA[:, 1]) + 1        # num_items = 1682 indexed 0,...,1681
+    np.random.seed(1)
+    NUM_TRAIN = int(0.8*NUM_OBSERVATIONS)
+    perm = np.random.permutation(DATA.shape[0])
+    TRAIN = DATA[perm[0:NUM_TRAIN], :]
+    TEST = DATA[perm[NUM_TRAIN::], :]
+    del perm
+    TRAIN_SPR = sparse.coo_matrix(
+        (TRAIN[:, 2], (TRAIN[:,1], TRAIN[:, 0])), (NUM_ITEMS, NUM_USERS)
+    )
+    TEST_SPR = sparse.coo_matrix(
+        (TEST[:, 2], (TEST[:,1], TEST[:, 0])), (NUM_ITEMS, NUM_USERS)
+    )
+    TRAIN_AVG = MoiveAvgRating(TRAIN_SPR)
+    print("DATA HAS BEEN LOADED. ")
+
+
+# ========================== List of Helper Functions ==========================
+
+def Ts():
+    from datetime import datetime
+    SysTime = datetime.now()
+    TimeStamp = SysTime.strftime("%H-%M-%S")
+    return TimeStamp
+
+
+def mkdir(dir):
+    from pathlib import Path
+    Path(dir).mkdir(parents=True, exist_ok=True)
+
+
+def log(fname:str, content:str, dir):
+    mkdir(dir)
+    TimeStamp = Ts()
+    with open(f"{dir}{TimeStamp}-{fname}.txt","w+") as f:
+        f.write(content)
+
+# ==============================================================================
+
+def Epsilon(approx, train=True):
+    Sparse = TRAIN_SPR if train else TEST_SPR
+    DiffSum = 0
+    for Idx, (II, JJ, Rating) in enumerate(
+            zip(Sparse.row, Sparse.col, Sparse.data)
+    ):
+        DiffSum += (Rating - approx[II, JJ]) ** 2
+    return DiffSum / Idx
+
+
+class AlternatingMinimization:
+
+    def __init__(this,
+                 dataMatrix:np.ndarray,
+                 d:int,
+                 sigma,
+                 regularizer,
+                 tol=1e-2):
+        assert dataMatrix.ndim == 2
+        m, n = dataMatrix.shape
+        this.m, this.n = m, n
+        this.R = dataMatrix
+        this.Sigma = sigma
+        this.Lambda = regularizer
+        this.Tol = tol
+        this.Rank = d
+        this.V = sigma*np.random.randn(d, n)
+        this.U = sigma*np.random.randn(d, m)
+        this.I = np.eye(d)
+        this.M = np.array(dataMatrix != 0, dtype=np.float)
+
+    def UOpt(this):
+        L = this.Lambda
+        I = this.I
+        R = this.R
+        V = this.V
+        U = this.U
+        M = this.M
+        for K in range(this.m):
+            U[:, K:K+1] = pinv(V@(M[K:K + 1,:].T*V.T) + L*I)@(V@R[K:K+1, :].T)
+
+    def VOpt(this):
+        L = this.Lambda
+        I = this.I
+        R = this.R
+        V = this.V
+        U = this.U
+        M = this.M
+        for K in range(this.n):
+            V[:, K:K+1] = pinv(U@(M[:, K:K+1]*U.T) + L*I)@(U@R[:, K:K+1])
+
+    def TrainLoss(this):
+        return this.Loss()
+
+    def TestLoss(this):
+        return this.Loss(False)
+
+    def Loss(this, train=True):
+        Approx = this.U.T@this.V
+        return Epsilon(Approx, train=train)
+
+
+def PartA():
+    DiffSum = 0
+    for Idx, (II, _, Rating) in enumerate(
+            zip(TEST_SPR.row, TEST_SPR.col, TEST_SPR.data)
+        ):
+        DiffSum += (Rating - TRAIN_AVG[II, 0])**2
+    return DiffSum/Idx
+
+
+def PartB(ranks=[1, 2, 5, 10, 20, 50]):
+    Ranks = sorted(ranks + [0])
+    RTilde = TRAIN_SPR.asfptype()  # Filled with zeros.
+    U, Sigma, VTransposed = svds(RTilde, k=942)
+    U, Sigma, VTransposed = U[:, ::-1], Sigma[::-1], VTransposed[::-1]
+    Approximation = np.zeros(RTilde.shape)
+    MSETrain, MSETest = [], []
+
+    for RankStart, RankEnd in zip(Ranks[: -1], Ranks[1:]):
+        Approximation += U[:, RankStart: RankEnd]\
+            @\
+            np.diag(Sigma[RankStart: RankEnd])\
+            @\
+            VTransposed[RankStart: RankEnd]
+        MSETrain.append(Epsilon(Approximation, True))
+        MSETest.append(Epsilon(Approximation, False))
+    return ranks, MSETrain, MSETest
+
+def MatrixComplete(d, sigma, regularizer):
+    Instance = AlternatingMinimization(
+        TRAIN_SPR.asfptype().toarray(),
+        d=d,
+        sigma=sigma,
+        regularizer=regularizer
+    )
+    for II in range(100):
+        Loss = Instance.Loss()
+        Instance.UOpt()
+        Instance.VOpt()
+        print(Loss)
+        if Loss - Instance.Loss() < 1e-2:
+            TestLoss = Instance.TestLoss()
+            break
+    return Loss, TestLoss
+
+
+def main():
+    FolderPath = "./B1"
+    mkdir(FolderPath)
+    def ParA():
+        PartAError = PartA()
+        with open(f"{FolderPath}/part-a.txt", "w+") as f:
+            f.write(f"For part (a), the error on test set is: {PartAError}")
+        print(f"ParA Done")
+    # ParA()
+    def ParB():
+        Ranks, TrainErr, TestErr = PartB()
+        print(f"Train Errors {TrainErr, TestErr}")
+        plt.plot(Ranks, TrainErr, "-o")
+        plt.plot(Ranks, TestErr, "-o")
+        plt.legend(["Train MSE", "Test MSE"])
+        plt.title("Ranks and Reconstruction (Filled with Zeroes)")
+        plt.savefig(f"{FolderPath}/{Ts()}-b1-b.png")
+        plt.show()
+        plt.clf()
+    # ParB()
+    def ParC():
+        Ranks = [1, 2, 5, 10, 20, 50]
+        TrainLosses, TestLosses = [], []
+        for Rank in Ranks:
+            TrainLoss, TestLoss = MatrixComplete(Rank, 1, Rank/10)
+            TrainLosses.append(TrainLoss)
+            TestLosses.append(TestLoss)
+        plt.plot(TrainLosses, "-o")
+        plt.plot(TestLosses, "-o")
+        plt.legend(["Train MSE", "Test MSE"])
+        plt.title("Matrix Complete, Ignore zeros, Alternating Opt")
+        plt.savefig(f"{FolderPath}/{Ts()}-b1-c.png")
+        plt.show()
+        plt.clf()
+    ParC()
+
+
+
+if __name__ == "__main__":
+    import os
+    print(os.getcwd())
+    print(os.curdir)
+    main()
+        \end{lstlisting}
+
     
 
 \end{document}
